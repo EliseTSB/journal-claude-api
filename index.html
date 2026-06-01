@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal Claude API — Developer Documentation</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #020308;
+  --bg2:       #0a0f1a;
+  --bg3:       #0f1624;
+  --bg-code:   #0b111d;
+  --border:    #1e2a38;
+  --border2:   #2a3a4a;
+  --text:      #d4d8e0;
+  --text-dim:  #8a98a8;
+  --text-faint:#4a5a6a;
+  --accent:    #8b5cf6;
+  --accent2:   #a983ff;
+  --green:     #22c55e;
+  --yellow:    #eab308;
+  --red:       #ef4444;
+  --blue:      #38bdf8;
+  --orange:    #f59e0b;
+  --mono:      ui-monospace, "Cascadia Code", "Fira Mono", "SF Mono", Menlo, monospace;
+  --sans:      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Layout ── */
+.shell { display: grid; grid-template-columns: 270px 1fr; min-height: 100vh; }
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 22px 0 40px;
+}
+.sidebar::-webkit-scrollbar { width: 8px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.brand { padding: 0 22px 18px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.brand-name {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent2);
+  letter-spacing: 0.3px;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  margin-top: 4px;
+}
+.brand-ver {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  background: rgba(139,92,246,0.12);
+  border: 1px solid rgba(139,92,246,0.3);
+  border-radius: 3px;
+  padding: 1px 7px;
+}
+
+.nav a {
+  display: block;
+  padding: 5px 22px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 13px;
+  border-left: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.nav a:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+.nav a.active { color: var(--accent2); border-left-color: var(--accent); background: rgba(139,92,246,0.06); }
+.nav-num { color: var(--text-faint); font-family: var(--mono); font-size: 11px; margin-right: 8px; }
+.nav a.active .nav-num { color: var(--accent); }
+
+/* ── Main ── */
+.main { min-width: 0; padding: 0; }
+.content { max-width: 820px; padding: 46px 56px 120px; }
+
+.doc-title { font-size: 30px; font-weight: 700; letter-spacing: -0.4px; color: #f0f2f6; }
+.doc-lead { color: var(--text-dim); font-size: 15px; margin-top: 12px; max-width: 680px; }
+.doc-meta { margin-top: 14px; font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+
+section { scroll-margin-top: 20px; padding-top: 38px; }
+h2 {
+  font-size: 22px;
+  font-weight: 650;
+  color: #eef0f4;
+  letter-spacing: -0.2px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+h3 { font-size: 16px; font-weight: 650; color: #e2e6ec; margin-top: 30px; }
+h4 { font-size: 13px; font-weight: 700; color: var(--accent2); margin-top: 22px; text-transform: uppercase; letter-spacing: 0.6px; }
+p  { margin-top: 12px; color: var(--text); }
+.muted { color: var(--text-dim); }
+
+ul, ol { margin-top: 12px; padding-left: 22px; }
+li { margin-top: 6px; }
+li::marker { color: var(--text-faint); }
+
+a.ilink { color: var(--blue); text-decoration: none; border-bottom: 1px dotted rgba(56,189,248,0.4); }
+a.ilink:hover { border-bottom-style: solid; }
+
+code.inline {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--accent2);
+}
+
+/* ── Code blocks ── */
+pre {
+  position: relative;
+  margin-top: 16px;
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+pre .lang-tag {
+  position: absolute;
+  top: 0; right: 0;
+  font-size: 9.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0 6px 0 6px;
+  padding: 3px 9px;
+}
+pre code { display: block; padding: 16px 18px; color: var(--text); white-space: pre; }
+pre::-webkit-scrollbar { height: 8px; }
+pre::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.tok-str  { color: #9ae6a0; }
+.tok-key  { color: #7cc7f5; }
+.tok-num  { color: #f0a868; }
+.tok-lit  { color: #d98be0; }
+.tok-kw   { color: #b48bff; }
+.tok-com  { color: #4f6175; font-style: italic; }
+.tok-punc { color: #7a8aa0; }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--text-dim); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border2); }
+td { color: var(--text); }
+td code, th code { font-family: var(--mono); font-size: 12px; color: var(--accent2); }
+tbody tr:hover { background: rgba(255,255,255,0.015); }
+
+/* ── Callouts ── */
+.callout {
+  margin-top: 18px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  border-left-width: 3px;
+  background: var(--bg2);
+  padding: 12px 16px;
+  font-size: 13px;
+}
+.callout .co-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+.callout p:first-child { margin-top: 0; }
+.callout.note    { border-left-color: var(--blue); }
+.callout.note .co-label { color: var(--blue); }
+.callout.warn    { border-left-color: var(--orange); }
+.callout.warn .co-label { color: var(--orange); }
+.callout.security{ border-left-color: var(--accent); }
+.callout.security .co-label { color: var(--accent2); }
+
+.pill { display: inline-block; font-family: var(--mono); font-size: 11px; padding: 1px 7px; border-radius: 3px; border: 1px solid var(--border2); color: var(--text-dim); }
+.pill.in  { color: var(--green);  border-color: rgba(34,197,94,0.35);  background: rgba(34,197,94,0.08); }
+.pill.out { color: var(--blue);   border-color: rgba(56,189,248,0.35); background: rgba(56,189,248,0.08); }
+
+.method-h { display: flex; align-items: center; gap: 10px; margin-top: 30px; }
+.method-h h3 { margin-top: 0; }
+hr.soft { border: none; border-top: 1px solid var(--border); margin: 36px 0 0; }
+
+.footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-faint); font-size: 12px; }
+
+@media (max-width: 880px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .content { padding: 32px 22px 80px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-name">Journal Claude API</div>
+      <div class="brand-sub">Developer Documentation</div>
+      <div class="brand-ver">v1</div>
+    </div>
+    <nav class="nav" id="nav">
+      <a href="#overview"><span class="nav-num">1</span>Overview</a>
+      <a href="#quickstart"><span class="nav-num">2</span>Quickstart</a>
+      <a href="#authentication"><span class="nav-num">3</span>Authentication</a>
+      <a href="#connection"><span class="nav-num">4</span>Connection</a>
+      <a href="#protocol"><span class="nav-num">5</span>Protocol Reference</a>
+      <a href="#schemas"><span class="nav-num">6</span>Message Schemas</a>
+      <a href="#reliability"><span class="nav-num">7</span>Reliability &amp; Sequencing</a>
+      <a href="#history"><span class="nav-num">8</span>History &amp; Retrieval</a>
+      <a href="#errors"><span class="nav-num">9</span>Error Codes</a>
+      <a href="#ratelimits"><span class="nav-num">10</span>Rate Limits</a>
+      <a href="#policy"><span class="nav-num">11</span>Usage Policy</a>
+      <a href="#examples"><span class="nav-num">12</span>Code Examples</a>
+      <a href="#changelog"><span class="nav-num">13</span>Changelog</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+  <div class="content">
+    <header>
+      <div class="doc-title">Journal Claude API</div>
+      <p class="doc-lead">A real-time conversational AI service accessible over WebRTC data channels. This documentation describes how to integrate it into your application.</p>
+      <div class="doc-meta">Version v1 &nbsp;·&nbsp; Real-time streaming &nbsp;·&nbsp; WebRTC / PeerJS transport</div>
+    </header>
+
+    <!-- 1 — OVERVIEW -->
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>The Journal Claude API provides conversational AI access through a peer-to-peer WebRTC connection. Clients establish a data channel to the service, exchange JSON-formatted messages, and receive streamed responses.</p>
+      <h4>Key characteristics</h4>
+      <ul>
+        <li><strong>Real-time streaming.</strong> Responses arrive as they are generated, chunk by chunk, over the data channel.</li>
+        <li><strong>Session continuity.</strong> Each authenticated client maintains conversation context across multiple prompts within a session.</li>
+        <li><strong>Unreliable transport.</strong> Data channels are configured for low-latency unreliable delivery. Clients implementing more than fire-and-forget interactions must build reliability themselves (see <a class="ilink" href="#reliability">Reliability &amp; Sequencing</a>).</li>
+        <li><strong>PeerJS-compatible.</strong> Clients may use the <a class="ilink" href="https://peerjs.com" target="_blank" rel="noopener">PeerJS library</a> for connection management, or implement raw WebRTC directly.</li>
+      </ul>
+      <h4>This service is not appropriate for</h4>
+      <ul>
+        <li>High-availability production applications (no SLA)</li>
+        <li>Bulk content generation or scraping</li>
+        <li>Use cases requiring strict ordered delivery without client-side reassembly logic</li>
+      </ul>
+      <div class="callout note">
+        <div class="co-label">Before you start</div>
+        <p>Your <strong>service peer ID</strong>, <strong>username</strong>, and <strong>password</strong> are delivered to you directly by the operator (in your welcome email). The examples below use <code class="inline">your-service-peer-id</code> as a placeholder — substitute the real value from your welcome email.</p>
+      </div>
+    </section>
+
+    <!-- 2 — QUICKSTART -->
+    <section id="quickstart">
+      <h2>Quickstart</h2>
+      <p>The minimal client connects to the service, logs in, sends a prompt, and prints the streamed response.</p>
+<pre data-lang="javascript"><code>// Minimal client using PeerJS. `sign()` + your keypair come from the Authentication section.
+const SERVICE_PEER_ID = 'your-service-peer-id';   // from your welcome email
+const peer = new Peer();
+
+peer.on('open', () => {
+  // serialization: 'raw' sends each message as a JSON string, as-is (required).
+  const conn = peer.connect(SERVICE_PEER_ID, { reliable: false, serialization: 'raw' });
+  let outSeq = 0;
+
+  // Every outbound message is signed; post-login messages carry the session_token.
+  async function send(msg) {
+    msg.seq = outSeq++;
+    msg.sig = await sign(privateKey, msg);
+    conn.send(JSON.stringify(msg));
+  }
+
+  conn.on('open', () => {
+    send({ type: 'login', username: 'your-username', password: getPasswordAtRuntime() });
+  });
+
+  conn.on('data', (raw) => {
+    const msg = JSON.parse(raw);
+    if (msg.type === 'login_ok') {
+      send({ type: 'prompt', session_token: msg.session_token,
+             content: 'Hello! What can you help me build?' });
+    } else if (msg.type === 'response_chunk') {
+      process.stdout.write(msg.content);
+    } else if (msg.type === 'response_end') {
+      console.log('\n[response complete]');
+    } else if (msg.type === 'login_failed' || msg.type === 'error') {
+      console.error('Error:', msg.code, msg.message);
+    }
+  });
+});</code></pre>
+      <div class="callout warn">
+        <div class="co-label">Heads up</div>
+        <p>This example assumes well-ordered, lossless delivery — which the service does <strong>not</strong> guarantee. For anything beyond a first experiment, see <a class="ilink" href="#reliability">Reliability &amp; Sequencing</a>.</p>
+      </div>
+    </section>
+
+    <!-- 3 — AUTHENTICATION -->
+    <section id="authentication">
+      <h2>Authentication</h2>
+      <p>Authentication is a three-step flow. Once the data channel opens, you (1) <strong>sign every message</strong> with your signing key, (2) <strong>log in</strong> with your username and password to obtain a short-lived <strong>session token</strong>, and (3) <strong>include that session token</strong> on every subsequent request.</p>
+
+      <h3>Message signing</h3>
+      <p>Each client owns a <strong>signing keypair</strong>. You generate it once, keep the <strong>private key</strong>, and register your <strong>public key</strong> with the service (contact your administrator). The service only ever holds your public key.</p>
+      <p>Every message you send must carry a <code class="inline">sig</code> field — an <strong>ECDSA (P-256, SHA-256) signature</strong> over a canonical serialization of the message, made with your private key. The canonical signing input is the newline-joined string:</p>
+<pre data-lang="text"><code>&lt;type&gt;\n&lt;seq&gt;\n&lt;session_token or ""&gt;\n&lt;SHA-256 hex of content, or ""&gt;</code></pre>
+      <p><code class="inline">sig</code> is the resulting signature, base64url-encoded. The service rebuilds the same string, verifies the signature against your registered public key, and <strong>silently drops any message with a missing or invalid signature</strong> before any other processing.</p>
+      <p>Generate and register your keypair once:</p>
+<pre data-lang="javascript"><code>const kp = await crypto.subtle.generateKey(
+  { name: 'ECDSA', namedCurve: 'P-256' },
+  false,                          // private key non-extractable
+  ['sign', 'verify']
+);
+const publicJwk = await crypto.subtle.exportKey('jwk', kp.publicKey);
+// Register publicJwk with your administrator. Persist the keypair (e.g. IndexedDB)
+// so it survives reloads. Keep the private key private.</code></pre>
+      <p>Sign each message:</p>
+<pre data-lang="javascript"><code>async function sign(privateKey, msg) {
+  const enc = new TextEncoder();
+  const contentHash = msg.content
+    ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(msg.content)))]
+        .map(b =&gt; b.toString(16).padStart(2, '0')).join('')
+    : '';
+  const input = `${msg.type}\n${msg.seq}\n${msg.session_token || ''}\n${contentHash}`;
+  const buf = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, privateKey, enc.encode(input));
+  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');   // base64url
+}</code></pre>
+      <div class="callout security">
+        <div class="co-label">Security</div>
+        <p>Message signing protects the service from unauthenticated traffic. It identifies your <em>application</em> (the holder of the private key), not <em>you</em> — that's what login is for. Keep your private key in client-side storage only; never commit or log it.</p>
+      </div>
+
+      <h3>Login</h3>
+      <p>After the channel opens, send a <code class="inline">login</code> message:</p>
+<pre data-lang="json"><code>{
+  "type": "login",
+  "seq": 0,
+  "username": "your-username",
+  "password": "your-password",
+  "sig": "&lt;signature over this message&gt;"
+}</code></pre>
+      <p>The service responds with one of:</p>
+      <ul>
+        <li><code class="inline">login_ok</code> — credentials accepted; carries your <code class="inline">session_token</code>, <code class="inline">session_id</code>, <code class="inline">rate_limit</code>, and <code class="inline">max_packet_size</code></li>
+        <li><code class="inline">login_failed</code> — invalid credentials. Repeated failures trigger a temporary lockout (see <a class="ilink" href="#errors">Error Codes</a>).</li>
+      </ul>
+      <div class="callout security">
+        <div class="co-label">Security</div>
+        <p>Enter your password at runtime (e.g., a login prompt in your application) rather than storing it in your source. A password embedded in client-side code is not secret.</p>
+      </div>
+
+      <h3>Session token</h3>
+      <p><code class="inline">login_ok</code> returns a <code class="inline">session_token</code>:</p>
+<pre data-lang="json"><code>{
+  "type": "login_ok",
+  "seq": 0,
+  "session_id": "sess_abc123",
+  "session_token": "st_live_9f3a8b2c1d",
+  "rate_limit": {
+    "requests_per_hour": 120,
+    "tokens_per_day": 100000
+  },
+  "max_packet_size": 16384
+}</code></pre>
+      <p>Include the <code class="inline">session_token</code> on every subsequent message (<code class="inline">prompt</code>, <code class="inline">history_request</code>, etc.), alongside the per-message <code class="inline">sig</code>:</p>
+<pre data-lang="json"><code>{
+  "type": "prompt",
+  "seq": 5,
+  "session_token": "st_live_9f3a8b2c1d",
+  "content": "Explain what a closure is in JavaScript.",
+  "sig": "&lt;signature over this message&gt;"
+}</code></pre>
+      <p>Session tokens are <strong>short-lived</strong>. When a token expires, log in again to obtain a new one. To resume a session after disconnection, see <a class="ilink" href="#reconnection">Reconnection</a>.</p>
+
+      <h3>Credential storage</h3>
+      <p>Your signing key and session token are sensitive. Recommended practices:</p>
+      <ul>
+        <li>Do not commit credentials to version control</li>
+        <li>Do not embed your password in source — enter it at runtime</li>
+        <li>Do not log credentials in client output</li>
+        <li>Treat the session token like a password for its lifetime</li>
+      </ul>
+    </section>
+
+    <!-- 4 — CONNECTION -->
+    <section id="connection">
+      <h2>Connection</h2>
+
+      <h3>Service discovery</h3>
+      <p>The service is reachable on the PeerJS network at the peer ID provided in your welcome email. Connect to it as:</p>
+<pre data-lang="javascript"><code>const SERVICE_PEER_ID = 'your-service-peer-id';   // from your welcome email
+const conn = peer.connect(SERVICE_PEER_ID, { reliable: false, serialization: 'raw' });</code></pre>
+      <p class="muted">Implementing raw <code class="inline">RTCPeerConnection</code> instead of PeerJS? Contact the operator for signaling details.</p>
+
+      <h3>Data channel configuration</h3>
+      <p>The data channel is negotiated with the following configuration:</p>
+      <table>
+        <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><code>reliable</code></td><td><code>false</code> &nbsp;<span class="muted">(→ <code>ordered: false</code>, <code>maxRetransmits: 0</code>)</span></td></tr>
+          <tr><td><code>serialization</code></td><td><code>'raw'</code> &nbsp;<span class="muted">(messages are sent as JSON strings, as-is)</span></td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <div class="co-label">serialization: 'raw' is required</div>
+        <p>The service exchanges newline-delimited JSON <em>strings</em>. PeerJS defaults to a binary serializer that wraps your payload — which the service will not understand. Always pass <code class="inline">serialization: 'raw'</code> in your <code class="inline">peer.connect()</code> options so messages travel as plain strings.</p>
+      </div>
+      <h4>Implications for clients</h4>
+      <ul>
+        <li>Messages may arrive out of order</li>
+        <li>Messages may be dropped without notification</li>
+        <li>The client is responsible for sequencing, retransmission requests, and reassembly</li>
+      </ul>
+
+      <h3>Connection lifecycle</h3>
+<pre data-lang="text"><code>[1]  Client opens PeerJS peer
+[2]  Client.connect(serviceId, { reliable: false, serialization: 'raw' })
+[3]  Service.on('connection') fires
+[4]  Data channel opens
+[5]  Client sends signed { type: 'login', username, password }
+[6]  Service responds { type: 'login_ok', session_id, session_token }
+[7]  --- Session active ---
+[8]  Client sends prompts; service streams responses
+[9]  Either party may send { type: 'close', reason: '...' }
+[10] Data channel closes</code></pre>
+
+      <h3>Heartbeats</h3>
+      <p>The service sends a <code class="inline">ping</code> message every 30 seconds when the channel is idle:</p>
+<pre data-lang="json"><code>{ "type": "ping", "ts": 1716406523456 }</code></pre>
+      <p>Clients should respond with <code class="inline">pong</code>:</p>
+<pre data-lang="json"><code>{ "type": "pong", "ts": 1716406523456 }</code></pre>
+      <p>If the service does not receive a <code class="inline">pong</code> within 60 seconds of a <code class="inline">ping</code>, it considers the connection dead and closes the data channel.</p>
+
+      <h3 id="reconnection">Reconnection</h3>
+      <p>After unexpected disconnection, clients may reconnect within <strong>5 minutes</strong> and resume the previous session. Session state (conversation context) persists across reconnections within this window.</p>
+      <p>To reconnect:</p>
+      <ol>
+        <li>Re-establish the data channel as in initial connection</li>
+        <li>Send a <code class="inline">login</code> message (signed, as always)</li>
+        <li>Include the previous <code class="inline">session_id</code> in <code class="inline">resume_session</code> to request resume:</li>
+      </ol>
+<pre data-lang="json"><code>{
+  "type": "login",
+  "seq": 0,
+  "username": "your-username",
+  "password": "your-password",
+  "resume_session": "sess_abc123",
+  "sig": "&lt;signature&gt;"
+}</code></pre>
+      <p>On successful resume:</p>
+<pre data-lang="json"><code>{
+  "type": "login_ok",
+  "seq": 0,
+  "session_id": "sess_abc123",
+  "session_token": "st_live_9f3a8b2c1d",
+  "resumed": true
+}</code></pre>
+      <p>If the session has expired or cannot be resumed, the service issues a fresh <code class="inline">session_id</code> (and a new <code class="inline">session_token</code>).</p>
+    </section>
+
+    <!-- 5 — PROTOCOL REFERENCE -->
+    <section id="protocol">
+      <h2>Protocol Reference</h2>
+      <p>All messages are <strong>newline-delimited JSON</strong>, encoded as UTF-8, with a maximum size of <strong>16,384 bytes per message</strong>. Larger payloads must be split across multiple messages using the chunking conventions in <a class="ilink" href="#schemas">Message Schemas</a>.</p>
+
+      <h3>Message direction</h3>
+      <table>
+        <thead><tr><th>Direction</th><th>Sender</th><th>Receiver</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill in">Inbound</span></td><td>Client</td><td>Service</td></tr>
+          <tr><td><span class="pill out">Outbound</span></td><td>Service</td><td>Client</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Common fields</h3>
+      <p>Every message contains:</p>
+      <table>
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>type</code></td><td>string</td><td>Message type discriminator</td></tr>
+          <tr><td><code>seq</code></td><td>number</td><td>Monotonic sequence number per direction</td></tr>
+          <tr><td><code>sig</code></td><td>string</td><td>ECDSA signature over the message (see <a class="ilink" href="#authentication">Message signing</a>). Required on every client→service message; messages without a valid <code>sig</code> are dropped.</td></tr>
+          <tr><td><code>session_token</code></td><td>string</td><td>Required on every client→service message <strong>after login</strong>. Returned by <code>login_ok</code>. Omitted only from the pre-login <code>login</code> message.</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">For brevity, the individual schemas below omit <code class="inline">sig</code> and <code class="inline">session_token</code> — they are required on client→service messages per this table.</p>
+
+      <h3>Message types — Inbound <span class="pill in">client → service</span></h3>
+      <table>
+        <thead><tr><th>Type</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>login</code></td><td>Authenticate with username + password; obtain a session token</td></tr>
+          <tr><td><code>prompt</code></td><td>Submit a prompt for response</td></tr>
+          <tr><td><code>cancel</code></td><td>Cancel an in-flight response</td></tr>
+          <tr><td><code>pong</code></td><td>Heartbeat acknowledgment</td></tr>
+          <tr><td><code>ack</code></td><td>Acknowledge receipt of a chunk (see <a class="ilink" href="#reliability">Reliability &amp; Sequencing</a>)</td></tr>
+          <tr><td><code>retransmit_request</code></td><td>Request retransmission of a missing chunk</td></tr>
+          <tr><td><code>history_request</code></td><td>Request a page of conversation history (see <a class="ilink" href="#history">History &amp; Retrieval</a>)</td></tr>
+          <tr><td><code>close</code></td><td>Gracefully close the session</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Message types — Outbound <span class="pill out">service → client</span></h3>
+      <table>
+        <thead><tr><th>Type</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>login_ok</code></td><td>Login succeeded; carries session token</td></tr>
+          <tr><td><code>login_failed</code></td><td>Login failed</td></tr>
+          <tr><td><code>response_chunk</code></td><td>A chunk of a streamed response</td></tr>
+          <tr><td><code>response_end</code></td><td>End of a streamed response</td></tr>
+          <tr><td><code>ping</code></td><td>Heartbeat</td></tr>
+          <tr><td><code>error</code></td><td>Error notification</td></tr>
+          <tr><td><code>rate_limited</code></td><td>Rate limit hit; request rejected</td></tr>
+          <tr><td><code>history_chunk</code></td><td>A chunk of a requested history page</td></tr>
+          <tr><td><code>history_end</code></td><td>End of a history page; carries the next-page cursor</td></tr>
+          <tr><td><code>close</code></td><td>Service initiated close</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 6 — MESSAGE SCHEMAS -->
+    <section id="schemas">
+      <h2>Message Schemas</h2>
+
+      <div class="method-h"><span class="pill in">client → service</span><h3><code>login</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "login",
+  "seq": 0,
+  "username": "your-username",
+  "password": "your-password",
+  "sig": "&lt;signature&gt;"
+}</code></pre>
+      <ul>
+        <li><code class="inline">username</code> / <code class="inline">password</code> (string, required): your credentials. Enter the password at runtime; do not store it in source.</li>
+        <li>The <code class="inline">login</code> message carries <code class="inline">sig</code> but <strong>not</strong> <code class="inline">session_token</code> — it's the message that obtains one.</li>
+        <li><code class="inline">resume_session</code> (string, optional): a previous <code class="inline">session_id</code> to resume (see <a class="ilink" href="#reconnection">Reconnection</a>).</li>
+      </ul>
+
+      <div class="method-h"><span class="pill out">service → client</span><h3><code>login_ok</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "login_ok",
+  "seq": 0,
+  "session_id": "sess_abc123",
+  "session_token": "st_live_9f3a8b2c1d",
+  "resumed": false,
+  "rate_limit": {
+    "requests_per_hour": 120,
+    "tokens_per_day": 100000
+  },
+  "max_packet_size": 16384
+}</code></pre>
+
+      <div class="method-h"><span class="pill in">client → service</span><h3><code>prompt</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "prompt",
+  "seq": 1,
+  "content": "Explain what a closure is in JavaScript."
+}</code></pre>
+      <p>For prompts larger than the per-message limit, split across multiple messages:</p>
+<pre data-lang="json"><code>{ "type": "prompt", "seq": 1, "chunk_index": 0, "chunk_total": 3, "content": "First part of prompt..." }
+{ "type": "prompt", "seq": 2, "chunk_index": 1, "chunk_total": 3, "content": "Second part..." }
+{ "type": "prompt", "seq": 3, "chunk_index": 2, "chunk_total": 3, "content": "Final part." }</code></pre>
+      <p>The service buffers chunks and assembles the full prompt when all <code class="inline">chunk_total</code> chunks arrive (in any order, by sequence).</p>
+
+      <div class="method-h"><span class="pill out">service → client</span><h3><code>response_chunk</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "response_chunk",
+  "seq": 1,
+  "response_id": "resp_xyz789",
+  "chunk_index": 0,
+  "content": "A closure in JavaScript is..."
+}</code></pre>
+      <ul>
+        <li><code class="inline">response_id</code> (string): identifier for this response, used to associate chunks</li>
+        <li><code class="inline">chunk_index</code> (number): ordering within this response, starting at 0</li>
+        <li><code class="inline">content</code> (string): text content of this chunk</li>
+      </ul>
+      <p class="muted">Chunks may arrive out of order. Reassemble using <code class="inline">(response_id, chunk_index)</code>.</p>
+
+      <div class="method-h"><span class="pill out">service → client</span><h3><code>response_end</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "response_end",
+  "seq": 24,
+  "response_id": "resp_xyz789",
+  "chunk_total": 23,
+  "usage": {
+    "input_tokens": 142,
+    "output_tokens": 856
+  }
+}</code></pre>
+      <p>Signals that no more chunks will be sent for this <code class="inline">response_id</code>. The client should have received <code class="inline">chunk_total</code> chunks (indexed 0 through <code class="inline">chunk_total - 1</code>).</p>
+
+      <div class="method-h"><span class="pill in">client → service</span><h3><code>cancel</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "cancel",
+  "seq": 5,
+  "response_id": "resp_xyz789"
+}</code></pre>
+      <p>Requests the service stop streaming the response with the given <code class="inline">response_id</code>. The service will send a final <code class="inline">response_end</code> with <code class="inline">cancelled: true</code>.</p>
+
+      <div class="method-h"><span class="pill in">client → service</span><h3><code>ack</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "ack",
+  "seq": 6,
+  "ack_seq": 24
+}</code></pre>
+      <p>Acknowledges receipt of all service messages through sequence <code class="inline">ack_seq</code>. Used for backpressure and retransmission tracking.</p>
+
+      <div class="method-h"><span class="pill in">client → service</span><h3><code>retransmit_request</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "retransmit_request",
+  "seq": 7,
+  "response_id": "resp_xyz789",
+  "missing_indices": [3, 7, 12]
+}</code></pre>
+      <p>Requests retransmission of specific chunks the client did not receive. The service will resend the requested chunks if still in its retransmit buffer (kept for 30 seconds per chunk).</p>
+
+      <div class="method-h"><span class="pill out">service → client</span><h3><code>error</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "error",
+  "seq": 10,
+  "code": 400,
+  "message": "Prompt exceeds maximum length",
+  "context": {
+    "max_length": 100000,
+    "received_length": 142000
+  }
+}</code></pre>
+
+      <div class="method-h"><span class="pill out">service → client</span><h3><code>rate_limited</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "rate_limited",
+  "seq": 11,
+  "code": 429,
+  "message": "Rate limit exceeded",
+  "retry_after": 1800
+}</code></pre>
+      <p class="muted"><code class="inline">retry_after</code> is seconds until the client may retry.</p>
+
+      <div class="method-h"><span class="pill in">either direction</span><h3><code>close</code></h3></div>
+<pre data-lang="json"><code>{
+  "type": "close",
+  "seq": 99,
+  "reason": "session_complete"
+}</code></pre>
+      <p>After sending or receiving <code class="inline">close</code>, the data channel will be closed within 1 second.</p>
+    </section>
+
+    <!-- 7 — RELIABILITY -->
+    <section id="reliability">
+      <h2>Reliability &amp; Sequencing</h2>
+
+      <h3>What the channel guarantees</h3>
+      <ul>
+        <li><strong>Delivery:</strong> packets may be lost without notification</li>
+        <li><strong>Ordering:</strong> packets may arrive in any order</li>
+        <li><strong>Duplication:</strong> packets may arrive more than once (rare but possible)</li>
+        <li><strong>Integrity:</strong> packets that do arrive are not corrupted (DTLS provides this)</li>
+      </ul>
+
+      <h3>What clients must implement</h3>
+      <p>If your application requires more than fire-and-forget prompts, you must implement:</p>
+      <ol>
+        <li><strong>Sequence tracking.</strong> Track the highest contiguous <code class="inline">seq</code> received from the service. Detect gaps.</li>
+        <li><strong>Acknowledgment.</strong> Periodically send <code class="inline">ack</code> messages with the highest contiguous sequence received.</li>
+        <li><strong>Retransmission requests.</strong> When gaps are detected, send <code class="inline">retransmit_request</code> for the missing indices.</li>
+        <li><strong>Chunk reassembly.</strong> Buffer <code class="inline">response_chunk</code> messages by <code class="inline">response_id</code>; reassemble in order by <code class="inline">chunk_index</code> when all chunks arrive.</li>
+        <li><strong>Duplicate detection.</strong> Reject messages with sequence numbers you have already processed.</li>
+        <li><strong>Timeout handling.</strong> If a response is incomplete after a reasonable interval, decide whether to request retransmits or give up.</li>
+        <li><strong>Backpressure.</strong> Throttle your prompt rate based on observed response latency. The service applies its own backpressure on outbound responses (see below).</li>
+      </ol>
+
+      <h3>Backpressure semantics</h3>
+      <p>The service tracks per-connection how many <code class="inline">response_chunk</code> messages it has sent without receiving an <code class="inline">ack</code> covering them.</p>
+      <ul>
+        <li><strong>Window size:</strong> 32 unacked chunks</li>
+        <li><strong>When the window fills:</strong> the service pauses sending further <code class="inline">response_chunk</code> messages for this <code class="inline">response_id</code></li>
+        <li><strong>When the client sends an <code class="inline">ack</code>:</strong> the service resumes sending if the unacked count drops below the window</li>
+      </ul>
+      <p>Clients implementing reliable transport SHOULD send <code class="inline">ack</code> messages with reasonable frequency (e.g., on every Nth chunk received, or after a short timer) to prevent the service from pausing mid-response. Clients that never send <code class="inline">ack</code> messages will receive at most 32 chunks per response before the service pauses indefinitely.</p>
+      <p class="muted">For long responses (&gt;32 chunks), failing to ack will appear as a hung response. The service does not time out the response itself, but does require client cooperation to continue streaming.</p>
+
+      <h3>Suggested implementation pattern</h3>
+      <p>A clean implementation typically maintains:</p>
+      <ul>
+        <li>An <strong>inbound buffer</strong> keyed by <code class="inline">(response_id, chunk_index)</code></li>
+        <li>An <strong>outbound buffer</strong> of unacknowledged messages (your own <code class="inline">seq</code> numbers)</li>
+        <li>A <strong>next-expected-sequence</strong> counter for the service direction</li>
+        <li><strong>Per-response state</strong>: total chunks expected, chunks received, last activity timestamp</li>
+        <li>A <strong>timer</strong> triggering retransmission requests after <code class="inline">seq</code> gaps persist past a threshold</li>
+      </ul>
+      <p class="muted">The service's retransmit buffer is finite — request missing chunks promptly (within 30 seconds) or they will no longer be available.</p>
+    </section>
+
+    <!-- 8 — HISTORY -->
+    <section id="history">
+      <h2>History &amp; Retrieval</h2>
+      <p>The service stores the full history of your conversations. You can retrieve it on demand — to display past messages, or to download your entire history for local processing (search, export, analysis).</p>
+      <p>History is delivered over the same unreliable data channel as live responses, using the same chunking and sequencing. <strong>Your reliability layer (sequence tracking, reassembly, retransmit) applies to history exactly as it applies to responses</strong> — a history page is just another chunked, streamed payload. You may request history at any time, <strong>including while a live response is streaming</strong> — history retrieval runs independently of the live conversation flow and does not count against the concurrent-response limit.</p>
+
+      <h3>Requesting history</h3>
+<pre data-lang="json"><code>{
+  "type": "history_request",
+  "seq": 12,
+  "cursor": null,
+  "page_size": 25
+}</code></pre>
+      <ul>
+        <li><code class="inline">cursor</code> (string or null): the pagination cursor. Pass <code class="inline">null</code> for the most recent page. To reach older messages, pass the <code class="inline">next_cursor</code> from the previous <code class="inline">history_end</code> (below).</li>
+        <li><code class="inline">page_size</code> (number, optional): requested number of message-pairs per page. The service may return fewer; it will never return more than its maximum. Default 25.</li>
+      </ul>
+      <p>History is paginated <strong>backward in time</strong>: the first page (<code class="inline">cursor: null</code>) is your most recent activity; each subsequent page reaches further into the past.</p>
+
+      <h3>Receiving a history page</h3>
+      <p>A page is streamed as one or more <code class="inline">history_chunk</code> messages, followed by a single <code class="inline">history_end</code>:</p>
+<pre data-lang="json"><code>{
+  "type": "history_chunk",
+  "seq": 40,
+  "page_id": "hist_pg_7f3a",
+  "chunk_index": 0,
+  "content": "&lt;a slice of the page's serialized messages&gt;"
+}</code></pre>
+      <ul>
+        <li><code class="inline">page_id</code> (string): identifies this page. Associate chunks by <code class="inline">(page_id, chunk_index)</code>, exactly as you do with <code class="inline">response_id</code> for responses.</li>
+        <li><code class="inline">chunk_index</code> (number): ordering within the page, starting at 0.</li>
+        <li><code class="inline">content</code> (string): a slice of the page payload. Reassemble all chunks in <code class="inline">chunk_index</code> order to get the full page.</li>
+      </ul>
+      <p>The reassembled page payload is a JSON array of message records, <strong>oldest-first within the page</strong>:</p>
+<pre data-lang="json"><code>[
+  {
+    "ts": "2026-05-31T22:14:18Z",
+    "channel": "rtc",
+    "role": "user",
+    "content": "How do I implement a retransmit buffer?"
+  },
+  {
+    "ts": "2026-05-31T22:14:31Z",
+    "channel": "rtc",
+    "role": "assistant",
+    "content": "Start by asking what the receiver needs to track..."
+  }
+]</code></pre>
+      <p>The page ends with:</p>
+<pre data-lang="json"><code>{
+  "type": "history_end",
+  "seq": 52,
+  "page_id": "hist_pg_7f3a",
+  "chunk_total": 12,
+  "next_cursor": "eyJiZWZvcmUiOiAxNzE2..."
+}</code></pre>
+      <ul>
+        <li><code class="inline">chunk_total</code> (number): how many <code class="inline">history_chunk</code> messages this page sent. You should have received chunks <code class="inline">0</code> through <code class="inline">chunk_total - 1</code>; request retransmits for any gaps before assembling.</li>
+        <li><code class="inline">next_cursor</code> (string or null): pass this as <code class="inline">cursor</code> in your next <code class="inline">history_request</code> to get the next-older page. When <code class="inline">next_cursor</code> is <code class="inline">null</code>, <strong>you have reached the beginning of your history</strong> — there is nothing older.</li>
+      </ul>
+
+      <h3>Cursor semantics</h3>
+      <p>The cursor is an <strong>opaque token</strong>. Do not parse it, construct it, or depend on its internal format — it may change without notice. Treat it as a black box: the service hands you a <code class="inline">next_cursor</code>, you hand it back verbatim. The only special value is <code class="inline">null</code> (as a request <code class="inline">cursor</code>: start at the most recent page; as a received <code class="inline">next_cursor</code>: end of history).</p>
+      <p>History is <strong>immutable and stable for backward paging</strong>: paging into the past returns the same messages in the same order every time. New messages you send or receive arrive through the live <code class="inline">response_*</code> flow, not through history — so a backward page-walk is never disturbed by new activity.</p>
+
+      <h3>Downloading your full history</h3>
+      <p>To obtain your complete history (for example, to build local search), page backward until <code class="inline">next_cursor</code> is <code class="inline">null</code>:</p>
+      <ol>
+        <li><code class="inline">history_request</code> with <code class="inline">cursor: null</code>.</li>
+        <li>Reassemble the page; append its records to your local store.</li>
+        <li>If <code class="inline">next_cursor</code> is not <code class="inline">null</code>, send <code class="inline">history_request</code> with <code class="inline">cursor: next_cursor</code>; repeat from step 2.</li>
+        <li>Stop when <code class="inline">history_end.next_cursor</code> is <code class="inline">null</code> — you now hold every message, exactly once.</li>
+      </ol>
+      <div class="callout note">
+        <div class="co-label">Guarantee</div>
+        <p>A complete backward walk yields <strong>every message exactly once</strong> — no gaps, no duplicates.</p>
+      </div>
+    </section>
+
+    <!-- 9 — ERROR CODES -->
+    <section id="errors">
+      <h2>Error Codes</h2>
+      <p>The service uses HTTP-style status codes for familiarity. Errors are returned in messages of <code class="inline">type: "error"</code> or <code class="inline">type: "rate_limited"</code>.</p>
+
+      <h3>4xx — Client errors</h3>
+      <table>
+        <thead><tr><th>Code</th><th>Name</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>400</code></td><td>Bad Request</td><td>Malformed message or invalid field values</td></tr>
+          <tr><td><code>401</code></td><td>Unauthorized</td><td>Missing or invalid token</td></tr>
+          <tr><td><code>403</code></td><td>Forbidden</td><td>Token valid but lacks permission for this action</td></tr>
+          <tr><td><code>404</code></td><td>Not Found</td><td>Referenced <code>response_id</code> or <code>session_id</code> does not exist</td></tr>
+          <tr><td><code>408</code></td><td>Request Timeout</td><td>Client did not complete a multi-chunk prompt within the timeout</td></tr>
+          <tr><td><code>413</code></td><td>Payload Too Large</td><td>Message exceeds <code>max_packet_size</code> or prompt exceeds maximum length</td></tr>
+          <tr><td><code>429</code></td><td>Rate Limited</td><td>Too many requests; see <code>retry_after</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>5xx — Server errors</h3>
+      <table>
+        <thead><tr><th>Code</th><th>Name</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>500</code></td><td>Internal Server Error</td><td>Unexpected server-side failure</td></tr>
+          <tr><td><code>502</code></td><td>Bad Gateway</td><td>Upstream model service unavailable</td></tr>
+          <tr><td><code>503</code></td><td>Service Unavailable</td><td>Service temporarily overloaded; retry with backoff</td></tr>
+          <tr><td><code>504</code></td><td>Gateway Timeout</td><td>Upstream model service timed out</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Error response format</h3>
+<pre data-lang="json"><code>{
+  "type": "error",
+  "seq": 12,
+  "code": 413,
+  "message": "Prompt exceeds maximum length of 100000 characters",
+  "context": {
+    "max_length": 100000,
+    "received_length": 142000
+  },
+  "retry_after": null
+}</code></pre>
+      <p class="muted">The <code class="inline">context</code> field provides structured details specific to the error; its shape varies by error code. The <code class="inline">retry_after</code> field is present when a retry might succeed.</p>
+    </section>
+
+    <!-- 10 — RATE LIMITS -->
+    <section id="ratelimits">
+      <h2>Rate Limits</h2>
+      <p>These limits exist to protect the service from runaway clients — an infinite loop, a missing backpressure check, a request storm — <strong>not</strong> to ration your usage. They are set generously: a frontend built with reasonable care will never reach them. If you <em>do</em> hit one during normal use, it almost always means a bug in your client (a loop, a missing throttle), not that you're using the service "too much."</p>
+      <p>The service enforces the following per token:</p>
+      <table>
+        <thead><tr><th>Limit</th><th>Default</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Requests per hour</td><td><code>120</code></td><td>A "request" is one <code>prompt</code> (chunked prompts count as one). <code>history_request</code>s do <strong>not</strong> count.</td></tr>
+          <tr><td>Output tokens per day</td><td><code>100,000</code></td><td>Sum of <code>output_tokens</code> across all responses</td></tr>
+          <tr><td>Concurrent active responses</td><td><code>1</code></td><td>One <em>prompt response</em> in-flight at a time. <strong>History fetches are exempt</strong> — a <code>history_request</code> may run while a response is streaming.</td></tr>
+          <tr><td>Maximum prompt length</td><td><code>100,000 chars</code></td><td>Across all chunks of a chunked prompt</td></tr>
+          <tr><td>Maximum session duration</td><td><code>24 hours</code></td><td>Sessions reset after 24 hours of activity</td></tr>
+        </tbody>
+      </table>
+      <p>When a limit is hit, the service returns a <code class="inline">rate_limited</code> message with <code class="inline">retry_after</code> indicating when the request may be retried. During normal use, treat any <code class="inline">rate_limited</code> as a prompt to look for a loop or a missing throttle in your own code.</p>
+      <p class="muted">Rate-limit values are surfaced in the <code class="inline">login_ok</code> message at session start.</p>
+    </section>
+
+    <!-- 11 — USAGE POLICY -->
+    <section id="policy">
+      <h2>Usage Policy</h2>
+      <p>By using this service, you agree to the following:</p>
+
+      <h4>Permitted uses</h4>
+      <ul>
+        <li>Personal projects, learning, experimentation</li>
+        <li>Coding assistance, debugging help, explanation of technical concepts</li>
+        <li>Conversational interaction within the topical scope of the service operator</li>
+      </ul>
+
+      <h4>Prohibited uses</h4>
+      <ul>
+        <li>Bulk content generation, scraping, or training data extraction</li>
+        <li>Sharing your credentials with third parties or embedding them in publicly-distributed code</li>
+        <li>Using the service to generate content that violates applicable laws</li>
+        <li>Attempting to bypass rate limits via multiple accounts</li>
+      </ul>
+
+      <h4>Monitoring</h4>
+      <div class="callout security">
+        <div class="co-label">Not anonymous</div>
+        <p>Exchanges through this service are monitored by the operator for safety, quality, and audit purposes. This is not anonymous service. Do not share content you would not want the service operator to see.</p>
+      </div>
+
+      <h4>Termination</h4>
+      <p>The operator may terminate access at any time, with or without cause, by invalidating your credentials.</p>
+    </section>
+
+    <!-- 12 — CODE EXAMPLES -->
+    <section id="examples">
+      <h2>Code Examples</h2>
+
+      <h3>JavaScript (PeerJS) — client with reliability scaffolding</h3>
+<pre data-lang="javascript"><code>const SERVICE_PEER_ID = 'your-service-peer-id';   // from your welcome email
+
+class JournalClaudeClient {
+  constructor({ username, password, privateKey }) {
+    this.username = username;
+    this.password = password;       // enter at runtime; don't hardcode
+    this.privateKey = privateKey;   // your ECDSA private key (see Authentication)
+    this.peer = new Peer();
+    this.conn = null;
+    this.session_id = null;
+    this.session_token = null;
+    this.outbound_seq = 0;
+    this.next_expected_seq = 1;
+    this.responses = new Map(); // response_id -&gt; { chunks: Map, total: null, callbacks }
+    this.pending_acks = new Map(); // seq -&gt; message
+  }
+
+  async connect() {
+    return new Promise((resolve, reject) =&gt; {
+      this.peer.on('open', () =&gt; {
+        this.conn = this.peer.connect(SERVICE_PEER_ID, { reliable: false, serialization: 'raw' });
+
+        this.conn.on('open', () =&gt; {
+          // First message: signed login. The session_token comes back in login_ok.
+          this.send({ type: 'login', username: this.username, password: this.password });
+        });
+
+        this.conn.on('data', (raw) =&gt; {
+          try {
+            const msg = JSON.parse(raw);
+            this.handleMessage(msg, resolve, reject);
+          } catch (e) {
+            console.error('Malformed message:', e);
+          }
+        });
+
+        this.conn.on('error', reject);
+      });
+    });
+  }
+
+  // Every outbound message is signed; post-login messages also carry the session_token.
+  async send(msg) {
+    msg.seq = this.outbound_seq++;
+    if (this.session_token &amp;&amp; msg.type !== 'login') msg.session_token = this.session_token;
+    msg.sig = await sign(this.privateKey, msg);   // sign() from the Authentication section
+    this.conn.send(JSON.stringify(msg));
+    return msg.seq;
+  }
+
+  handleMessage(msg, resolveLogin, rejectLogin) {
+    switch (msg.type) {
+      case 'login_ok':
+        this.session_id = msg.session_id;
+        this.session_token = msg.session_token;
+        resolveLogin(msg);
+        break;
+      case 'login_failed':
+        rejectLogin(new Error(msg.message));
+        break;
+      case 'response_chunk':
+        this.handleChunk(msg);
+        break;
+      case 'response_end':
+        this.handleEnd(msg);
+        break;
+      case 'ping':
+        this.send({ type: 'pong', ts: msg.ts });
+        break;
+      case 'error':
+      case 'rate_limited':
+        this.handleError(msg);
+        break;
+    }
+  }
+
+  handleChunk(msg) {
+    let resp = this.responses.get(msg.response_id);
+    if (!resp) {
+      resp = { chunks: new Map(), total: null, onChunk: null, onEnd: null };
+      this.responses.set(msg.response_id, resp);
+    }
+    resp.chunks.set(msg.chunk_index, msg.content);
+    if (resp.onChunk) resp.onChunk(msg.content, msg.chunk_index);
+  }
+
+  handleEnd(msg) {
+    const resp = this.responses.get(msg.response_id);
+    if (!resp) return;
+    resp.total = msg.chunk_total;
+    if (resp.onEnd) {
+      const ordered = [];
+      for (let i = 0; i &lt; resp.total; i++) {
+        ordered.push(resp.chunks.get(i) || '[MISSING]');
+      }
+      resp.onEnd(ordered.join(''), msg.usage);
+    }
+  }
+}</code></pre>
+      <div class="callout note">
+        <div class="co-label">What this leaves for you</div>
+        <p>This example shows signing + login + session-token handling, but still omits ack/retransmit logic, sequence-gap detection, <code class="inline">response_id</code> correlation, reconnection, and backpressure. A complete implementation requires building these on top — see <a class="ilink" href="#reliability">Reliability &amp; Sequencing</a>.</p>
+      </div>
+
+      <h3>Minimum viable fire-and-forget client</h3>
+<pre data-lang="javascript"><code>// Simplest client. Assumes reliable delivery (which the service does NOT guarantee).
+// `sign()` + your keypair come from the Authentication section.
+const SERVICE_PEER_ID = 'your-service-peer-id';   // from your welcome email
+const peer = new Peer();
+peer.on('open', () =&gt; {
+  const conn = peer.connect(SERVICE_PEER_ID, { reliable: false, serialization: 'raw' });
+  let seq = 0;
+  const send = async (m) =&gt; { m.seq = seq++; m.sig = await sign(privateKey, m); conn.send(JSON.stringify(m)); };
+  conn.on('open', () =&gt; send({ type: 'login', username: 'you', password: getPassword() }));
+  conn.on('data', (raw) =&gt; {
+    const m = JSON.parse(raw);
+    if (m.type === 'login_ok') send({ type: 'prompt', session_token: m.session_token, content: 'Hi!' });
+    else if (m.type === 'response_chunk') console.log(m.content);
+  });
+});</code></pre>
+    </section>
+
+    <!-- 13 — CHANGELOG -->
+    <section id="changelog">
+      <h2>Changelog</h2>
+      <h3>v1 — initial release</h3>
+      <ul>
+        <li>WebRTC data channel transport (PeerJS, <code class="inline">serialization: 'raw'</code>)</li>
+        <li>Keypair message signing (ECDSA P-256) + login → short-lived session token</li>
+        <li>Streaming responses with client-side reassembly</li>
+        <li>Cursor-paginated conversation history retrieval</li>
+        <li>Session continuity across reconnections</li>
+      </ul>
+
+      <div class="footer">
+        Journal Claude API · v1 · Developer Documentation
+      </div>
+    </section>
+  </div>
+  </main>
+</div>
+
+<script>
+// ── Lightweight syntax highlighter (no external libs) ──
+(function () {
+  const KW = new Set(['const','let','var','function','async','await','return','new','for','if','else',
+    'class','of','in','try','catch','this','switch','case','break','while','do','typeof','instanceof','null','true','false']);
+  // Master tokenizer: comments | strings(+key) | numbers | words
+  // Comment alt uses a negative lookbehind so `//` inside a regex literal (e.g. /\//g)
+  // or after `:` (e.g. a URL) is NOT mistaken for a line comment.
+  const RE = /((?<![\\\/:])\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\])*")(\s*:)?|(-?\b\d+(?:\.\d+)?\b)|([A-Za-z_$][A-Za-z0-9_$]*)/g;
+
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  function highlight(src) {
+    // src arrives already HTML-escaped (it's textContent → innerHTML), so unescape entities
+    // we authored (&lt; &gt; &amp;) back to chars for tokenizing, then re-escape per-token.
+    const raw = src.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    let out = '', last = 0, m;
+    RE.lastIndex = 0;
+    while ((m = RE.exec(raw)) !== null) {
+      out += esc(raw.slice(last, m.index));
+      if (m[1] !== undefined) {                       // comment
+        out += '<span class="tok-com">' + esc(m[1]) + '</span>';
+      } else if (m[2] !== undefined) {                // string (+ optional trailing colon → key)
+        if (m[3] !== undefined) {
+          out += '<span class="tok-key">' + esc(m[2]) + '</span><span class="tok-punc">' + esc(m[3]) + '</span>';
+        } else {
+          out += '<span class="tok-str">' + esc(m[2]) + '</span>';
+        }
+      } else if (m[4] !== undefined) {                // number
+        out += '<span class="tok-num">' + esc(m[4]) + '</span>';
+      } else if (m[5] !== undefined) {                // word
+        const w = m[5];
+        if (w === 'true' || w === 'false' || w === 'null') out += '<span class="tok-lit">' + w + '</span>';
+        else if (KW.has(w)) out += '<span class="tok-kw">' + w + '</span>';
+        else out += w;
+      }
+      last = RE.lastIndex;
+    }
+    out += esc(raw.slice(last));
+    return out;
+  }
+
+  document.querySelectorAll('pre[data-lang]').forEach((pre) => {
+    const code = pre.querySelector('code');
+    const lang = pre.getAttribute('data-lang');
+    const tag = document.createElement('span');
+    tag.className = 'lang-tag';
+    tag.textContent = lang;
+    pre.appendChild(tag);
+    if (lang === 'json' || lang === 'javascript') {
+      code.innerHTML = highlight(code.innerHTML);
+    }
+  });
+
+  // ── Scroll-spy nav ──
+  const links = [...document.querySelectorAll('.nav a')];
+  const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        links.forEach(a => a.classList.remove('active'));
+        const a = byId.get(e.target.id);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '0px 0px -75% 0px', threshold: 0 });
+  document.querySelectorAll('section[id]').forEach(s => obs.observe(s));
+})();
+</script>
+</body>
+</html>
