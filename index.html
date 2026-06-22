@@ -312,7 +312,9 @@ peer.on('open', () => {
       send({ type: 'prompt', session_token: msg.session_token,
              content: 'Hello! What can you help me build?' });
     } else if (msg.type === 'response_chunk') {
-      process.stdout.write(msg.content);
+      // Render each streamed chunk in your UI. This runs in a browser (no process.stdout) —
+      // append the chunk to the page, or to your own console/terminal element:
+      document.body.append(msg.content);
     } else if (msg.type === 'response_end') {
       console.log('\n[response complete]');
     } else if (msg.type === 'login_failed' || msg.type === 'error') {
@@ -1015,7 +1017,7 @@ peer.on('open', () =&gt; {
   const conn = peer.connect(SERVICE_PEER_ID, { reliable: false, serialization: 'raw' });
   let seq = 0;
   const send = async (m) =&gt; { m.seq = seq++; m.sig = await sign(privateKey, m); conn.send(JSON.stringify(m)); };
-  conn.on('open', () =&gt; send({ type: 'login', username: 'you', password: getPassword() }));
+  conn.on('open', () =&gt; send({ type: 'login', username: 'you', password: getPasswordAtRuntime() }));
   conn.on('data', (raw) =&gt; {
     const m = JSON.parse(raw);
     if (m.type === 'login_ok') send({ type: 'prompt', session_token: m.session_token, content: 'Hi!' });
