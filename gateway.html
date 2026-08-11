@@ -291,7 +291,7 @@ hr.soft { border: none; border-top: 1px solid var(--border); margin: 36px 0 0; }
   -H &quot;Authorization: Bearer your-api-key&quot; \
   -H &quot;Content-Type: application/json&quot; \
   -d &#x27;{
-    &quot;model&quot;: &quot;deepseek-v4-pro&quot;,
+    &quot;model&quot;: &quot;deepseek-v4-flash&quot;,
     &quot;messages&quot;: [
       { &quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;In one sentence: what is a closure in JavaScript?&quot; }
     ]
@@ -307,7 +307,7 @@ const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
     &#x27;Content-Type&#x27;: &#x27;application/json&#x27;,
   },
   body: JSON.stringify({
-    model: &#x27;deepseek-v4-pro&#x27;,
+    model: &#x27;deepseek-v4-flash&#x27;,
     messages: [
       { role: &#x27;user&#x27;, content: &#x27;In one sentence: what is a closure in JavaScript?&#x27; },
     ],
@@ -360,7 +360,7 @@ console.log(data.choices[0].message.content);</code></pre>
 </tbody></table>
 <p>A minimal single-turn request:</p>
 <pre data-lang="json"><code>{
-  &quot;model&quot;: &quot;deepseek-v4-pro&quot;,
+  &quot;model&quot;: &quot;deepseek-v4-flash&quot;,
   &quot;messages&quot;: [
     { &quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a terse coding tutor.&quot; },
     { &quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;What does Array.prototype.flat() do?&quot; }
@@ -375,7 +375,7 @@ console.log(data.choices[0].message.content);</code></pre>
   &quot;id&quot;: &quot;chatcmpl-abc123&quot;,
   &quot;object&quot;: &quot;chat.completion&quot;,
   &quot;created&quot;: 1782100000,
-  &quot;model&quot;: &quot;deepseek-v4-pro&quot;,
+  &quot;model&quot;: &quot;deepseek-v4-flash&quot;,
   &quot;choices&quot;: [
     {
       &quot;index&quot;: 0,
@@ -410,7 +410,7 @@ async function ask(userText) {
   const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
     method: &#x27;POST&#x27;,
     headers: { &#x27;Authorization&#x27;: `Bearer ${API_KEY}`, &#x27;Content-Type&#x27;: &#x27;application/json&#x27; },
-    body: JSON.stringify({ model: &#x27;deepseek-v4-pro&#x27;, messages: conversation }),
+    body: JSON.stringify({ model: &#x27;deepseek-v4-flash&#x27;, messages: conversation }),
   });
   const data = await res.json();
   const reply = data.choices[0].message;   // { role: &#x27;assistant&#x27;, content: &#x27;...&#x27; }
@@ -430,7 +430,7 @@ await ask(&quot;What&#x27;s my name?&quot;);   // now it knows — because YOU s
 <h2>Streaming</h2>
 <p>By default you wait for the whole reply, then get it at once. Set <code class="inline">&quot;stream&quot;: true</code> to receive it token-by-token as it&#x27;s generated — better for a typing-effect UI.</p>
 <pre data-lang="json"><code>{
-  &quot;model&quot;: &quot;deepseek-v4-pro&quot;,
+  &quot;model&quot;: &quot;deepseek-v4-flash&quot;,
   &quot;messages&quot;: [ { &quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Count slowly to five.&quot; } ],
   &quot;stream&quot;: true
 }</code></pre>
@@ -588,7 +588,7 @@ async function ask(prompt) {
     method: &#x27;POST&#x27;,
     headers: { &#x27;Authorization&#x27;: `Bearer ${API_KEY}`, &#x27;Content-Type&#x27;: &#x27;application/json&#x27; },
     body: JSON.stringify({
-      model: &#x27;deepseek-v4-pro&#x27;,
+      model: &#x27;deepseek-v4-flash&#x27;,
       messages: [{ role: &#x27;user&#x27;, content: prompt }],
     }),
   });
@@ -604,7 +604,7 @@ async function ask(prompt) {
   const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
     method: &#x27;POST&#x27;,
     headers: { &#x27;Authorization&#x27;: `Bearer ${API_KEY}`, &#x27;Content-Type&#x27;: &#x27;application/json&#x27; },
-    body: JSON.stringify({ model: &#x27;deepseek-v4-pro&#x27;, messages: [{ role: &#x27;user&#x27;, content: prompt }], stream: true }),
+    body: JSON.stringify({ model: &#x27;deepseek-v4-flash&#x27;, messages: [{ role: &#x27;user&#x27;, content: prompt }], stream: true }),
   });
 
   const reader = res.body.getReader();
@@ -638,6 +638,8 @@ async function ask(prompt) {
 <h2>Changelog</h2>
 <h3 class="method-h">v1 — 2026-06-22 (initial draft)</h3>
 <ul><li>OpenAI Chat Completions-compatible HTTP API (<code class="inline">POST /v1/chat/completions</code>).</li><li>Bearer-key auth (per-account: model permissions, budget, usage log).</li><li>Stateless requests — conversation state is the client&#x27;s responsibility.</li><li>Streaming (SSE) and non-streaming responses.</li><li>Open-model roster (served via the OpenCode Go pool).</li><li>Rolling dollar budget ($2/5h, $5/week, $10/month); no per-minute rate limit.</li></ul>
+<h3 class="method-h">v1 — 2026-08-11 (cost table, usage endpoint, examples on flash)</h3>
+<ul><li>Every code example now uses <code class="inline">deepseek-v4-flash</code> — they were on <code class="inline">deepseek-v4-pro</code>, which the Models section had just finished explaining is not an upgrade. An example is what gets copied, so a doc whose prose and examples disagree teaches the examples.</li><li>Added a per-million price table for the four models, on the same dollar scale as your budget, with worked examples.</li><li>Added <code class="inline">GET /v1/usage</code>. The response&#x27;s own <code class="inline">cost</code> field is the string <code class="inline">&quot;0&quot;</code> on every reply and is not usable; this endpoint reports what you have actually spent.</li></ul>
 <h3 class="method-h">v1 — 2026-08-11 (live; harness front-door added)</h3>
 <ul><li><strong>LIVE.</strong> Base URL and your API key are provisioned; the key reached you 2026-07-09 with the <code class="inline">opencode.json</code> attachment.</li><li>Added <a class="ilink" href="#-start-here-you-do-not-have-to-build-a-client-first">Start here</a>: the <code class="inline">opencode</code> harness path, so you can use the gateway without writing a client first.</li><li>Models section no longer hardcodes a roster — <code class="inline">/model</code> is the live answer, and <code class="inline">deepseek-v4-flash</code> is the default.</li></ul>
 </section>
