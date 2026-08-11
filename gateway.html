@@ -482,6 +482,49 @@ data: [DONE]</code></pre>
 <pre data-lang="json"><code>&quot;usage&quot;: { &quot;prompt_tokens&quot;: 142, &quot;completion_tokens&quot;: 856, &quot;total_tokens&quot;: 998 }</code></pre>
 <ul><li><strong><code class="inline">prompt_tokens</code></strong> — what you sent (your messages, system prompt, history). This grows with conversation length.</li><li><strong><code class="inline">completion_tokens</code></strong> — what the model generated.</li><li>Cost is charged on both (output usually costs more per token than input).</li></ul>
 <p>You have a real budget (below), so <strong>watching <code class="inline">usage</code> is a real skill, not busywork</strong> — it&#x27;s how you notice a conversation getting expensive, or a runaway loop, before it costs anything that matters. A good habit: log <code class="inline">total_tokens</code> per request while you&#x27;re developing.</p>
+<h3 class="method-h">What a token actually costs you</h3>
+<p>Prices are <strong>per million tokens</strong>, and output is always dearer than input.</p>
+<table>
+<thead><tr>
+<th>Model</th>
+<th>Input</th>
+<th>Output</th>
+<th>Cached input</th>
+</tr></thead><tbody>
+<tr><td><code class="inline">deepseek-v4-flash</code></td><td>$0.14</td><td>$0.28</td><td>$0.0028</td></tr>
+<tr><td><code class="inline">mimo-v2.5</code></td><td>$0.14</td><td>$0.28</td><td>$0.0028</td></tr>
+<tr><td><code class="inline">minimax-m3</code></td><td>$0.30</td><td>$1.20</td><td>$0.06</td></tr>
+<tr><td><code class="inline">glm-5.2</code></td><td>$1.40</td><td>$4.40</td><td>$0.26</td></tr>
+</tbody></table>
+<div class="callout note">These are the <strong>same dollars as your caps</strong>, so you can do the arithmetic directly against your $10/month. Some sense of scale, all on <code class="inline">deepseek-v4-flash</code>:</div>
+<table>
+<thead><tr>
+<th>What you did</th>
+<th>Tokens</th>
+<th>Cost</th>
+</tr></thead><tbody>
+<tr><td>One short question and answer</td><td>100 in, 300 out</td><td><strong>$0.0001</strong></td></tr>
+<tr><td>A long answer (a page of code)</td><td>500 in, 4,000 out</td><td><strong>$0.0012</strong></td></tr>
+<tr><td>A 20-turn conversation, resent each time</td><td>~40,000 in, 8,000 out</td><td><strong>$0.008</strong></td></tr>
+<tr><td>Your whole monthly budget on flash</td><td>—</td><td><strong>~8 million output tokens</strong></td></tr>
+</tbody></table>
+<div class="callout warn">The third row is the one to look at. Because you resend the whole history every turn, a long conversation charges you for the same early messages over and over — that is why <code class="inline">Conversation state is your job</code> is a cost section as much as a protocol one.</div>
+<div class="callout security"><strong><code class="inline">glm-5.2</code> is ten times the price of flash.</strong> That is not a reason to avoid it; it is a reason to reach for it deliberately, when flash has actually failed at something.</div>
+<h3 class="method-h">Checking what you have spent</h3>
+<p>The response body has a <code class="inline">cost</code> field. <strong>Ignore it — it is always the string <code class="inline">&quot;0&quot;</code>.</strong> It is in the schema and never filled in; measured on a 4,000-token call whose real cost was $0.00113. A field that cannot vary is not evidence, and trusting it would tell you a runaway loop was free.</p>
+<p>Ask the gateway instead:</p>
+<pre data-lang="bash"><code>curl https://your-gateway-host/v1/usage \
+  -H &quot;Authorization: Bearer your-api-key&quot;</code></pre>
+<pre data-lang="json"><code>{
+  &quot;tenant&quot;: &quot;jj-api&quot;,
+  &quot;budget&quot;: {
+    &quot;per5h&quot;:   { &quot;used&quot;: 0.001227, &quot;cap&quot;: 2,  &quot;remaining&quot;: 1.998773 },
+    &quot;perWeek&quot;: { &quot;used&quot;: 0.002853, &quot;cap&quot;: 5,  &quot;remaining&quot;: 4.997147 },
+    &quot;perMonth&quot;:{ &quot;used&quot;: 0.009647, &quot;cap&quot;: 10, &quot;remaining&quot;: 9.990353 }
+  },
+  &quot;calls&quot;: 40
+}</code></pre>
+<p>It answers for <strong>whoever&#x27;s key asked</strong> — there is no parameter naming a user, so you cannot read anyone else&#x27;s and nobody can read yours. Worth noticing as a design: the safe version of this endpoint is the one where the dangerous request cannot be spelled.</p>
 <hr>
 </section>
 <section id="rate-limits-and-budget">
