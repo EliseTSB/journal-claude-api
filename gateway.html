@@ -286,6 +286,7 @@ hr.soft { border: none; border-top: 1px solid var(--border); margin: 36px 0 0; }
 <section id="quickstart">
 <h2>Quickstart</h2>
 <p>Your <strong>base URL</strong> and <strong>API key</strong> are delivered to you directly by the operator (like your RTC welcome email). The examples use <code class="inline">https://your-gateway-host</code> and <code class="inline">your-api-key</code> as placeholders — substitute the real values.</p>
+<div class="callout warn"><strong>One <code class="inline">/v1</code>, not two.</strong> The full endpoint is <code class="inline">&lt;base&gt;/v1/chat/completions</code>, and the examples below add the <code class="inline">/v1</code> for you — so your base URL should be the <strong>bare host</strong> (<code class="inline">https://your-gateway-host</code>), <em>not</em> ending in <code class="inline">/v1</code>. <strong>If you copy your base URL out of <code class="inline">opencode.json</code>, it already ends in <code class="inline">/v1</code></strong> (that is opencode&#x27;s own format) — drop that trailing <code class="inline">/v1</code>, or you will call <code class="inline">/v1/v1/chat/completions</code> and get a <code class="inline">404</code>.</div>
 <p>The smallest possible thing — one request, one reply:</p>
 <pre data-lang="bash"><code>curl https://your-gateway-host/v1/chat/completions \
   -H &quot;Authorization: Bearer your-api-key&quot; \
@@ -316,6 +317,30 @@ const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
 
 const data = await res.json();
 console.log(data.choices[0].message.content);</code></pre>
+<p>The same thing from <strong>Google Apps Script</strong> — a <code class="inline">.gs</code> file, running server-side. ⚠ Browser <code class="inline">fetch()</code> does <strong>not</strong> exist here; Apps Script&#x27;s HTTP client is <code class="inline">UrlFetchApp.fetch(url, params)</code>, and the options go in that second <strong><code class="inline">params</code></strong> object — a <em>named</em> argument, not the anonymous <code class="inline">{ ... }</code> that <code class="inline">fetch</code> takes:</p>
+<pre data-lang="javascript"><code>function askGateway() {
+  const BASE_URL = &#x27;https://your-gateway-host&#x27;;   // bare host — NOT ending in /v1 (see the note above)
+  const API_KEY  = &#x27;your-api-key&#x27;;                 // fine to keep in a PRIVATE .gs — server-side code never reaches the browser
+
+  const params = {
+    method: &#x27;post&#x27;,                                // lowercase in Apps Script
+    contentType: &#x27;application/json&#x27;,               // this sets the Content-Type header
+    headers: { &#x27;Authorization&#x27;: &#x27;Bearer &#x27; + API_KEY },
+    muteHttpExceptions: true,                       // hand back the error body instead of throwing on a 4xx/5xx
+    payload: JSON.stringify({
+      model: &#x27;deepseek-v4-flash&#x27;,
+      messages: [ { role: &#x27;user&#x27;, content: &#x27;In one sentence: what is a closure in JavaScript?&#x27; } ],
+    }),
+  };
+
+  const res = UrlFetchApp.fetch(BASE_URL + &#x27;/v1/chat/completions&#x27;, params);
+
+  Logger.log(res.getResponseCode());              // 200 = ok; 4xx/5xx = reached us and got rejected
+  const data = JSON.parse(res.getContentText());  // an HTTPResponse has no .json() — read the text, then parse
+  Logger.log(data.choices[0].message.content);
+}</code></pre>
+<p>Two Apps-Script things that look like <em>your</em> bug but aren&#x27;t: <code class="inline">UrlFetchApp</code> is <strong>synchronous</strong> (no <code class="inline">await</code>), and it <strong>throws</strong> on a 4xx/5xx unless you set <code class="inline">muteHttpExceptions: true</code> — without it, even a plain &quot;missing key&quot; <code class="inline">401</code> explodes with the real error hidden.</p>
+<div class="callout note">If you later build an HTML page <em>inside</em> Apps Script and want it to call the gateway, note that the page&#x27;s client-side JavaScript can&#x27;t reach <code class="inline">UrlFetchApp</code> — only server-side <code class="inline">.gs</code> can. The page calls a <code class="inline">.gs</code> function through <a class="ilink" href="https://developers.google.com/apps-script/guides/html/reference/run"><code class="inline">google.script.run</code></a>, which is <strong>asynchronous and returns nothing directly</strong>: the server function&#x27;s return value arrives as the argument to a <code class="inline">.withSuccessHandler(fn)</code> callback.</div>
 <p>That&#x27;s your skeleton. Everything else clips onto it.</p>
 <hr>
 </section>
