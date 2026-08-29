@@ -236,69 +236,58 @@ hr.soft { border: none; border-top: 1px solid var(--border); margin: 36px 0 0; }
       <div class="nav-group">Start here</div>
       <a href="#start-here-you-do-not-have-to-build-a-client-fir"><span class="nav-num">1</span>Start here: you do not have to build a client first</a>
       <div class="nav-group">Wire spec — reference</div>
-      <a href="#overview"><span class="nav-num">2</span>Overview</a>
-      <a href="#quickstart"><span class="nav-num">3</span>Quickstart</a>
-      <a href="#authentication"><span class="nav-num">4</span>Authentication</a>
-      <a href="#making-a-request"><span class="nav-num">5</span>Making a request</a>
-      <a href="#the-response"><span class="nav-num">6</span>The response</a>
-      <a href="#conversation-state-is-your-job"><span class="nav-num">7</span>Conversation state is your job</a>
-      <a href="#streaming"><span class="nav-num">8</span>Streaming</a>
-      <a href="#models"><span class="nav-num">9</span>Models</a>
+      <a href="#quickstart"><span class="nav-num">2</span>Quickstart</a>
+      <a href="#authentication"><span class="nav-num">3</span>Authentication</a>
+      <a href="#making-a-request"><span class="nav-num">4</span>Making a request</a>
+      <a href="#the-response"><span class="nav-num">5</span>The response</a>
+      <a href="#conversation-state-is-your-job"><span class="nav-num">6</span>Conversation state is your job</a>
+      <a href="#streaming"><span class="nav-num">7</span>Streaming</a>
+      <a href="#models"><span class="nav-num">8</span>Models</a>
+      <a href="#reasoning"><span class="nav-num">9</span>Reasoning</a>
       <a href="#usage-and-cost"><span class="nav-num">10</span>Usage and Cost</a>
       <a href="#rate-limits-and-budget"><span class="nav-num">11</span>Rate Limits and Budget</a>
       <a href="#error-codes"><span class="nav-num">12</span>Error Codes</a>
       <a href="#usage-policy"><span class="nav-num">13</span>Usage Policy</a>
-      <a href="#code-examples"><span class="nav-num">14</span>Code Examples</a>
-      <a href="#changelog"><span class="nav-num">15</span>Changelog</a>
+      <a href="#changelog"><span class="nav-num">14</span>Changelog</a>
     </nav>
   </aside>
   <main class="main">
   <div class="content">
     <header>
       <h1>Gateway API</h1>
-      <p class="muted">The JJ-facing guide to the metered LLM gateway. Two ways in: run it through the opencode harness (three commands, no code), or talk to the raw OpenAI-compatible HTTP API directly. Distinct from the RTC/Journal-Claude API (api-docs.md) — this endpoint is a <em>model</em>, not Claude, and it is stateless HTTP rather than a WebRTC session. The base URL and API key are placeholders by design; the real values reach you from the operator. LIVE since 2026-07-09.</p>
+      <p class="muted">JJ-facing guide to the metered LLM gateway. Two ways in — run it through the opencode harness with no code, or call the HTTP API directly. Distinct from the RTC/Journal-Claude API (api-docs.md); this endpoint is a model, not Claude, and it is stateless HTTP rather than a WebRTC session. How the gateway works internally is not here — that is notes/llm-gateway-operations.md.</p>
     </header>
 <section id="start-here-you-do-not-have-to-build-a-client-fir">
 <h2>Start here: you do not have to build a client first</h2>
-<p><strong>There are two ways in, and the easy one comes first.</strong> Most of this document is the raw wire — useful, and the thing you eventually want to understand. But you can be <em>using</em> the gateway in about three minutes without writing a line of it.</p>
-<p><strong>Use <code class="inline">opencode</code> as your harness.</strong> It is a terminal program that already speaks this API; you point it at your key and start working. In a Codespace terminal:</p>
+<p>You can be using this in about three minutes without writing any code.</p>
+<p><strong>Use <code class="inline">opencode</code> as your harness</strong> — a terminal program that already speaks this API:</p>
 <pre data-lang="bash"><code>curl -fsSL https://opencode.ai/install | bash</code></pre>
-<p>Then put the <code class="inline">opencode.json</code> Elise sent you at the <strong>top level</strong> of the project, and run:</p>
-<pre data-lang="bash"><code>opencode</code></pre>
-<p><code class="inline">/model</code> inside it lists the models you can actually reach. <strong>That command is the answer, not a list in this document</strong> — the roster changes when the models behind the gateway change, so a table here would go stale and <code class="inline">/model</code> never can.</p>
-<p><strong>Default to <code class="inline">deepseek-v4-flash</code></strong> for basically everything unless you have a reason not to. Per Elise it is the dominant option right now for the price, and she is the one running the benchmarks.</p>
-<div class="callout warn"><strong>Your <code class="inline">opencode.json</code> contains your API key.</strong> If it lands in a git repo, the key is public — anyone who finds it can spend your budget. <strong>Add it to <code class="inline">.gitignore</code> before you commit anything.</strong> This is not housekeeping; it is the first real lesson attached to this module, and it is why git comes before models.</div>
-<p><strong>Your budget</strong> (so nothing is a surprise): <strong>$2 per 5 hours · $5 per week · $10 per month.</strong> There is no request-rate limit. Spend it on anything you like — this is what it is for.</p>
-<h3 class="method-h">When to come back to the rest of this document</h3>
-<p>The harness hides the API from you, which is exactly right at the start and exactly wrong later. Come back down here when you want to <strong>build something of your own</strong> that talks to a model — your own tool, a script, a feature inside SIGNAL_OS. At that point the section that matters is <a class="ilink" href="#conversation-state-is-your-job">Conversation state is your job</a>, because that is the part no harness can teach you.</p>
+<p>Put the <code class="inline">opencode.json</code> Elise sent you at the <strong>top level</strong> of the project, then run <code class="inline">opencode</code>. <code class="inline">/model</code> lists what you can reach.</p>
+<p><strong>Default to <code class="inline">LongCat-2.0</code></strong> unless the task involves an image, audio or video — then <code class="inline">mimo-v2.5</code>.</p>
+<div class="callout warn"><strong>Your <code class="inline">opencode.json</code> contains your API key.</strong> If it lands in a git repo the key is public and anyone who finds it can spend your budget. <strong>Add it to <code class="inline">.gitignore</code> before you commit anything.</strong></div>
+<p><strong>Your budget:</strong> <strong>$2 per 5 hours · $5 per week · $10 per month</strong>, no request-rate limit. Plus a separate <strong>10M tokens a month</strong> on <code class="inline">LongCat-2.0</code>, which does not touch the dollar budget.</p>
+<p>The harness hides the API, which is right at the start and wrong later. Come back when you want to build something of your own. The section that matters then is <a class="ilink" href="#conversation-state-is-your-job">Conversation state is your job</a> — the part no harness teaches.</p>
 <hr>
-<div class="callout note"><strong>Reading the reference — how to read the rest of these docs.</strong> Same as before: this is a <em>reference</em>, not a textbook. Don&#x27;t read it cover-to-cover. 1. Skim the <a class="ilink" href="#overview">Overview</a> — what this is and what it isn&#x27;t. 2. Go to the <a class="ilink" href="#quickstart">Quickstart</a> and get <strong>one request → one reply</strong> working. That&#x27;s your skeleton. 3. Then build a <em>conversation</em> (the <a class="ilink" href="#conversation-state-is-your-job">Conversation state</a> section) — that&#x27;s the real exercise. 4. Come back to the rest (Streaming, Models, Usage &amp; Cost, Errors) as you need them. If a section is confusing, that&#x27;s the doc&#x27;s job to fix, not yours.</div>
-</section>
-<section id="overview">
-<h2>Overview</h2>
-<p>The Gateway API is an HTTP service that gives you metered access to a pool of open-weights language models. You send it a chat request; it routes the request to a model, runs it, meters your usage, and sends the answer back.</p>
-<p><strong>Key characteristics:</strong></p>
-<ul><li><strong>OpenAI Chat Completions compatible.</strong> Requests and responses use the standard OpenAI shape (<code class="inline">POST /v1/chat/completions</code>, <code class="inline">messages: [...]</code>, <code class="inline">choices: [...]</code>). Anything you read in OpenAI/Groq/Together tutorials applies here, mostly unchanged.</li><li><strong>Stateless.</strong> Every request stands alone. The server keeps no memory of past requests. <strong>Conversation context is entirely your responsibility</strong> — you re-send the history each turn (see <a class="ilink" href="#conversation-state-is-your-job">Conversation state</a>).</li><li><strong>Metered.</strong> You have your own API key and your own budget. Every request is logged with its token counts and estimated cost (see <a class="ilink" href="#usage-and-cost">Usage and Cost</a>).</li><li><strong>A pool of open models.</strong> You pick the model per-request by name (see <a class="ilink" href="#models">Models</a>).</li><li><strong>HTTP, streaming optional.</strong> Default is one request → one full reply. Set <code class="inline">stream: true</code> for token-by-token streaming (see <a class="ilink" href="#streaming">Streaming</a>).</li></ul>
-<p><strong>This service is not appropriate for:</strong></p>
-<ul><li>High-availability production apps (no SLA).</li><li>Bulk content generation, scraping, or training-data extraction.</li><li>Anything that would burn through a shared budget pool in a runaway loop — write your client carefully (see <a class="ilink" href="#rate-limits-and-budget">Rate Limits and Budget</a>).</li></ul>
+<div class="callout note"><strong>This is a reference, not a textbook.</strong> Get one request → one reply working from the <a class="ilink" href="#quickstart">Quickstart</a>, then build a conversation. Come back to the rest as you need it. If a section is confusing, that is this doc&#x27;s job to fix, not yours.</div>
+<p><strong>Contents:</strong> <a class="ilink" href="#quickstart">Quickstart</a> · <a class="ilink" href="#authentication">Authentication</a> · <a class="ilink" href="#making-a-request">Making a request</a> · <a class="ilink" href="#the-response">The response</a> · <a class="ilink" href="#conversation-state-is-your-job">Conversation state</a> · <a class="ilink" href="#streaming">Streaming</a> · <a class="ilink" href="#models">Models</a> · <a class="ilink" href="#reasoning">Reasoning</a> · <a class="ilink" href="#usage-and-cost">Cost</a> · <a class="ilink" href="#rate-limits-and-budget">Limits</a> · <a class="ilink" href="#error-codes">Errors</a> · <a class="ilink" href="#usage-policy">Policy</a></p>
 <hr>
 </section>
 <section id="quickstart">
 <h2>Quickstart</h2>
-<p>Your <strong>base URL</strong> and <strong>API key</strong> are delivered to you directly by the operator (like your RTC welcome email). The examples use <code class="inline">https://your-gateway-host</code> and <code class="inline">your-api-key</code> as placeholders — substitute the real values.</p>
-<div class="callout warn"><strong>One <code class="inline">/v1</code>, not two.</strong> The full endpoint is <code class="inline">&lt;base&gt;/v1/chat/completions</code>, and the examples below add the <code class="inline">/v1</code> for you — so your base URL should be the <strong>bare host</strong> (<code class="inline">https://your-gateway-host</code>), <em>not</em> ending in <code class="inline">/v1</code>. <strong>If you copy your base URL out of <code class="inline">opencode.json</code>, it already ends in <code class="inline">/v1</code></strong> (that is opencode&#x27;s own format) — drop that trailing <code class="inline">/v1</code>, or you will call <code class="inline">/v1/v1/chat/completions</code> and get a <code class="inline">404</code>.</div>
-<p>The smallest possible thing — one request, one reply:</p>
+<p>Your <strong>base URL</strong> and <strong>API key</strong> come to you directly. The examples use placeholders.</p>
+<div class="callout warn"><strong>One <code class="inline">/v1</code>, not two.</strong> The full endpoint is <code class="inline">&lt;base&gt;/v1/chat/completions</code>, and the examples add the <code class="inline">/v1</code> for you — so your base URL is the <strong>bare host</strong>, <em>not</em> ending in <code class="inline">/v1</code>. <strong>If you copy it out of <code class="inline">opencode.json</code> it already ends in <code class="inline">/v1</code></strong> (that is opencode&#x27;s format) — drop that, or you call <code class="inline">/v1/v1/chat/completions</code> and get a <code class="inline">404</code>.</div>
+<p>One request, one reply:</p>
 <pre data-lang="bash"><code>curl https://your-gateway-host/v1/chat/completions \
   -H &quot;Authorization: Bearer your-api-key&quot; \
   -H &quot;Content-Type: application/json&quot; \
   -d &#x27;{
-    &quot;model&quot;: &quot;deepseek-v4-flash&quot;,
+    &quot;model&quot;: &quot;LongCat-2.0&quot;,
     &quot;messages&quot;: [
       { &quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;In one sentence: what is a closure in JavaScript?&quot; }
     ]
   }&#x27;</code></pre>
-<p>The same thing from a browser / Node with <code class="inline">fetch</code>:</p>
-<pre data-lang="javascript"><code>const BASE_URL = &#x27;https://your-gateway-host&#x27;;   // from the operator
+<p>The same thing from a browser or Node with <code class="inline">fetch</code>:</p>
+<pre data-lang="javascript"><code>const BASE_URL = &#x27;https://your-gateway-host&#x27;;   // bare host
 const API_KEY  = getKeyAtRuntime();             // enter at runtime; do NOT hardcode it
 
 const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
@@ -308,7 +297,7 @@ const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
     &#x27;Content-Type&#x27;: &#x27;application/json&#x27;,
   },
   body: JSON.stringify({
-    model: &#x27;deepseek-v4-flash&#x27;,
+    model: &#x27;LongCat-2.0&#x27;,
     messages: [
       { role: &#x27;user&#x27;, content: &#x27;In one sentence: what is a closure in JavaScript?&#x27; },
     ],
@@ -317,18 +306,18 @@ const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
 
 const data = await res.json();
 console.log(data.choices[0].message.content);</code></pre>
-<p>The same thing from <strong>Google Apps Script</strong> — a <code class="inline">.gs</code> file, running server-side. ⚠ Browser <code class="inline">fetch()</code> does <strong>not</strong> exist here; Apps Script&#x27;s HTTP client is <code class="inline">UrlFetchApp.fetch(url, params)</code>, and the options go in that second <strong><code class="inline">params</code></strong> object — a <em>named</em> argument, not the anonymous <code class="inline">{ ... }</code> that <code class="inline">fetch</code> takes:</p>
+<p>The same thing from <strong>Google Apps Script</strong> — a <code class="inline">.gs</code> file, running server-side. Browser <code class="inline">fetch()</code> does <strong>not</strong> exist here; Apps Script&#x27;s HTTP client is <code class="inline">UrlFetchApp.fetch(url, params)</code>, and the options go in that second <strong><code class="inline">params</code></strong> object — a <em>named</em> argument, not the anonymous <code class="inline">{ ... }</code> that <code class="inline">fetch</code> takes:</p>
 <pre data-lang="javascript"><code>function askGateway() {
-  const BASE_URL = &#x27;https://your-gateway-host&#x27;;   // bare host — NOT ending in /v1 (see the note above)
-  const API_KEY  = &#x27;your-api-key&#x27;;                 // fine to keep in a PRIVATE .gs — server-side code never reaches the browser
+  const BASE_URL = &#x27;https://your-gateway-host&#x27;;   // bare host — NOT ending in /v1
+  const API_KEY  = &#x27;your-api-key&#x27;;                 // fine in a PRIVATE .gs — server-side code never reaches the browser
 
   const params = {
     method: &#x27;post&#x27;,                                // lowercase in Apps Script
     contentType: &#x27;application/json&#x27;,               // this sets the Content-Type header
     headers: { &#x27;Authorization&#x27;: &#x27;Bearer &#x27; + API_KEY },
-    muteHttpExceptions: true,                       // hand back the error body instead of throwing on a 4xx/5xx
+    muteHttpExceptions: true,                      // hand back the error body instead of throwing on a 4xx/5xx
     payload: JSON.stringify({
-      model: &#x27;deepseek-v4-flash&#x27;,
+      model: &#x27;LongCat-2.0&#x27;,
       messages: [ { role: &#x27;user&#x27;, content: &#x27;In one sentence: what is a closure in JavaScript?&#x27; } ],
     }),
   };
@@ -339,25 +328,28 @@ console.log(data.choices[0].message.content);</code></pre>
   const data = JSON.parse(res.getContentText());  // an HTTPResponse has no .json() — read the text, then parse
   Logger.log(data.choices[0].message.content);
 }</code></pre>
-<p>Two Apps-Script things that look like <em>your</em> bug but aren&#x27;t: <code class="inline">UrlFetchApp</code> is <strong>synchronous</strong> (no <code class="inline">await</code>), and it <strong>throws</strong> on a 4xx/5xx unless you set <code class="inline">muteHttpExceptions: true</code> — without it, even a plain &quot;missing key&quot; <code class="inline">401</code> explodes with the real error hidden.</p>
-<div class="callout note">If you later build an HTML page <em>inside</em> Apps Script and want it to call the gateway, note that the page&#x27;s client-side JavaScript can&#x27;t reach <code class="inline">UrlFetchApp</code> — only server-side <code class="inline">.gs</code> can. The page calls a <code class="inline">.gs</code> function through <a class="ilink" href="https://developers.google.com/apps-script/guides/html/reference/run"><code class="inline">google.script.run</code></a>, which is <strong>asynchronous and returns nothing directly</strong>: the server function&#x27;s return value arrives as the argument to a <code class="inline">.withSuccessHandler(fn)</code> callback.</div>
+<p>Two Apps-Script things that look like <em>your</em> bug and aren&#x27;t: <code class="inline">UrlFetchApp</code> is <strong>synchronous</strong> (no <code class="inline">await</code>), and it <strong>throws</strong> on a 4xx/5xx unless you set <code class="inline">muteHttpExceptions: true</code> — without it, even a plain missing-key <code class="inline">401</code> explodes with the real error hidden.</p>
+<div class="callout note">If you later build an HTML page <em>inside</em> Apps Script and want it to call the gateway: the page&#x27;s client-side JavaScript can&#x27;t reach <code class="inline">UrlFetchApp</code> — only server-side <code class="inline">.gs</code> can. The page calls a <code class="inline">.gs</code> function through <a class="ilink" href="https://developers.google.com/apps-script/guides/html/reference/run"><code class="inline">google.script.run</code></a>, which is <strong>asynchronous and returns nothing directly</strong>: the return value arrives as the argument to a <code class="inline">.withSuccessHandler(fn)</code> callback.</div>
 <p>That&#x27;s your skeleton. Everything else clips onto it.</p>
 <hr>
 </section>
 <section id="authentication">
 <h2>Authentication</h2>
-<p>Authentication is a single API key, sent on every request as a <strong>Bearer token</strong>:</p>
+<p>One key, on every request:</p>
 <pre data-lang="text"><code>Authorization: Bearer your-api-key</code></pre>
-<p>(An <code class="inline">x-api-key: your-api-key</code> header is also accepted, if that&#x27;s easier in your setup. Pick one.)</p>
-<p>The key maps to <strong>your account</strong> — your model permissions, your budget, your usage log. There is no separate login step and no session token (unlike the RTC API). Every request carries the key.</p>
-<p><strong>Security — the same rules as your private key:</strong></p>
-<ul><li><strong>Enter the key at runtime</strong> (a prompt, an environment variable) — never hardcode it in source you might share or publish.</li><li>Do not commit it to version control.</li><li>Do not log it.</li><li>Treat it like a password. If it leaks, the operator rotates it.</li></ul>
-<p>A missing or unknown key gets you a <code class="inline">401</code> (see <a class="ilink" href="#error-codes">Error Codes</a>).</p>
+<p><code class="inline">x-api-key: your-api-key</code> also works. Pick one. No login step, no session token. A missing or unknown key gets a <code class="inline">401</code>.</p>
+<p><strong>Treat it like a password.</strong> Enter it at runtime from an environment variable or a prompt; never hardcode it in source you might share, never commit it, never log it.</p>
+<h3 class="method-h">Why keys get cycled</h3>
+<p>Your key was replaced on 2026-08-18, and the reasoning generalises well past this gateway.</p>
+<p>A credential gets replaced for one of two reasons: <strong>something went wrong</strong>, or <strong>you cannot cheaply prove nothing went wrong.</strong> The second is the common case and the one people skip, because there is no incident to point at.</p>
+<p>A key you have held for six months has six months of chances to have been exposed — pasted into a chat, caught in a screenshot, sitting in a forgotten file, logged by something you did not write. None of those leave a mark. You do not get an alert; you quietly stop knowing.</p>
+<p>So the useful question is not <em>&quot;has this key leaked?&quot;</em>, which is usually unanswerable, but <strong>&quot;if it had, how long would the damage have been running?&quot;</strong> Rotating on a schedule turns that from <em>indefinitely</em> into <em>at most since the last rotation</em>, with nothing to detect.</p>
+<p><strong>The habit:</strong> treat a credential as something with a lifetime rather than something you set once. Same reasoning behind SSH key rotation, session expiry and certificate end dates. None of them assume an attack; all of them assume that not being able to prove safety is itself a cost that accumulates.</p>
 <hr>
 </section>
 <section id="making-a-request">
 <h2>Making a request</h2>
-<p><code class="inline">POST /v1/chat/completions</code>, JSON body. The fields you&#x27;ll use:</p>
+<p><code class="inline">POST /v1/chat/completions</code>, JSON body:</p>
 <table>
 <thead><tr>
 <th>Field</th>
@@ -365,27 +357,25 @@ console.log(data.choices[0].message.content);</code></pre>
 <th>Required</th>
 <th>Description</th>
 </tr></thead><tbody>
-<tr><td><code class="inline">model</code></td><td>string</td><td>yes</td><td>Which model to use (see <a class="ilink" href="#models">Models</a>). An unknown model → <code class="inline">400</code>.</td></tr>
+<tr><td><code class="inline">model</code></td><td>string</td><td>yes</td><td>Which model (see <a class="ilink" href="#models">Models</a>). An unknown one → <code class="inline">400</code>.</td></tr>
 <tr><td><code class="inline">messages</code></td><td>array</td><td>yes</td><td>The conversation so far, oldest-first. Each item is <code class="inline">{ role, content }</code>.</td></tr>
-<tr><td><code class="inline">stream</code></td><td>boolean</td><td>no</td><td><code class="inline">true</code> = stream the reply token-by-token (see <a class="ilink" href="#streaming">Streaming</a>). Default <code class="inline">false</code>.</td></tr>
-<tr><td><code class="inline">max_tokens</code></td><td>number</td><td>no</td><td>Cap the length of the reply.</td></tr>
-<tr><td><code class="inline">temperature</code></td><td>number</td><td>no</td><td>0 = focused/deterministic-ish, higher = more varied. Default is the model&#x27;s own.</td></tr>
+<tr><td><code class="inline">stream</code></td><td>boolean</td><td>no</td><td><code class="inline">true</code> = token-by-token (see <a class="ilink" href="#streaming">Streaming</a>). Default <code class="inline">false</code>.</td></tr>
+<tr><td><code class="inline">max_tokens</code></td><td>number</td><td>no</td><td>Cap the reply length. See <a class="ilink" href="#reasoning">Reasoning</a> before setting it small.</td></tr>
+<tr><td><code class="inline">temperature</code></td><td>number</td><td>no</td><td>0 = focused, higher = more varied. <strong><code class="inline">kimi-k2.7-code</code> accepts only <code class="inline">1</code></strong> — any other value is a <code class="inline">400</code>. Leave it out on that model.</td></tr>
 <tr><td><code class="inline">top_p</code></td><td>number</td><td>no</td><td>Nucleus sampling. Use <em>either</em> <code class="inline">temperature</code> or <code class="inline">top_p</code>, not both.</td></tr>
 </tbody></table>
 <h3 class="method-h"><code class="inline">messages</code> — the roles</h3>
-<p>Each message is <code class="inline">{ &quot;role&quot;: ..., &quot;content&quot;: &quot;...&quot; }</code>. The roles:</p>
 <table>
 <thead><tr>
 <th>Role</th>
 <th>Meaning</th>
 </tr></thead><tbody>
-<tr><td><code class="inline">system</code></td><td>Standing instructions for how the model should behave. Usually the first message. Optional.</td></tr>
+<tr><td><code class="inline">system</code></td><td>Standing instructions for how the model should behave. Usually first. Optional.</td></tr>
 <tr><td><code class="inline">user</code></td><td>Something <em>you</em> (or your end-user) said.</td></tr>
-<tr><td><code class="inline">assistant</code></td><td>Something the <em>model</em> said on a previous turn. <strong>You include these yourself</strong> to give the model memory of the conversation (see <a class="ilink" href="#conversation-state-is-your-job">Conversation state</a>).</td></tr>
+<tr><td><code class="inline">assistant</code></td><td>Something the <em>model</em> said on a previous turn. <strong>You include these yourself</strong> to give it memory (see <a class="ilink" href="#conversation-state-is-your-job">Conversation state</a>).</td></tr>
 </tbody></table>
-<p>A minimal single-turn request:</p>
 <pre data-lang="json"><code>{
-  &quot;model&quot;: &quot;deepseek-v4-flash&quot;,
+  &quot;model&quot;: &quot;LongCat-2.0&quot;,
   &quot;messages&quot;: [
     { &quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a terse coding tutor.&quot; },
     { &quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;What does Array.prototype.flat() do?&quot; }
@@ -395,34 +385,27 @@ console.log(data.choices[0].message.content);</code></pre>
 </section>
 <section id="the-response">
 <h2>The response</h2>
-<p>A non-streaming request returns one JSON object in the standard OpenAI shape:</p>
 <pre data-lang="json"><code>{
   &quot;id&quot;: &quot;chatcmpl-abc123&quot;,
   &quot;object&quot;: &quot;chat.completion&quot;,
-  &quot;created&quot;: 1782100000,
-  &quot;model&quot;: &quot;deepseek-v4-flash&quot;,
+  &quot;model&quot;: &quot;LongCat-2.0&quot;,
   &quot;choices&quot;: [
     {
       &quot;index&quot;: 0,
-      &quot;message&quot;: { &quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;It flattens nested arrays one level deep by default...&quot; },
+      &quot;message&quot;: { &quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;It flattens nested arrays one level deep...&quot; },
       &quot;finish_reason&quot;: &quot;stop&quot;
     }
   ],
-  &quot;usage&quot;: {
-    &quot;prompt_tokens&quot;: 31,
-    &quot;completion_tokens&quot;: 84,
-    &quot;total_tokens&quot;: 115
-  }
+  &quot;usage&quot;: { &quot;prompt_tokens&quot;: 31, &quot;completion_tokens&quot;: 84, &quot;total_tokens&quot;: 115 }
 }</code></pre>
 <p>What to read:</p>
-<ul><li><strong><code class="inline">choices[0].message.content</code></strong> — the model&#x27;s reply text. This is the thing you almost always want.</li><li><strong><code class="inline">choices[0].finish_reason</code></strong> — why it stopped: <code class="inline">&quot;stop&quot;</code> (finished normally), <code class="inline">&quot;length&quot;</code> (hit <code class="inline">max_tokens</code>), <code class="inline">&quot;tool_calls&quot;</code> (if you&#x27;re using tools).</li><li><strong><code class="inline">usage</code></strong> — token counts for <em>this request</em>. <code class="inline">prompt_tokens</code> = what you sent, <code class="inline">completion_tokens</code> = what it generated. This is what your budget is spent on (see <a class="ilink" href="#usage-and-cost">Usage and Cost</a>). <strong>Watching this number is part of the exercise.</strong></li></ul>
-<p>Some models also include a <code class="inline">message.reasoning_content</code> field (the model&#x27;s chain-of-thought) alongside <code class="inline">content</code>. You can show it, log it, or ignore it.</p>
+<ul><li><strong><code class="inline">choices[0].message.content</code></strong> — the reply text. Almost always the thing you want.</li><li><strong><code class="inline">choices[0].finish_reason</code></strong> — <code class="inline">&quot;stop&quot;</code> (finished), <code class="inline">&quot;length&quot;</code> (hit <code class="inline">max_tokens</code>), <code class="inline">&quot;tool_calls&quot;</code>.</li><li><strong><code class="inline">usage</code></strong> — token counts for <em>this request</em>. This is what your budget is spent on, and <strong>watching it is part of the exercise.</strong></li><li><strong><code class="inline">message.reasoning_content</code></strong> — most models put their chain-of-thought here, beside <code class="inline">content</code>. Show it, log it, or ignore it; see <a class="ilink" href="#reasoning">Reasoning</a>.</li></ul>
 <hr>
 </section>
 <section id="conversation-state-is-your-job">
 <h2>Conversation state is your job</h2>
 <p>This is the section that matters most, and the reason this module exists.</p>
-<p><strong>The server is stateless. It does not remember your last request.</strong> If you send &quot;My name is JJ&quot; and then, in a <em>separate</em> request, send &quot;What&#x27;s my name?&quot;, the second request has no idea — it never saw the first one.</p>
+<p><strong>The server is stateless.</strong> If you send &quot;My name is JJ&quot; and then, in a <em>separate</em> request, send &quot;What&#x27;s my name?&quot;, the second request has no idea — it never saw the first one.</p>
 <p>To make a <em>conversation</em>, you keep the message list yourself and <strong>re-send the whole history every turn</strong>, appending the model&#x27;s reply as you go:</p>
 <pre data-lang="javascript"><code>// Your client holds the conversation. The server holds nothing.
 const conversation = [
@@ -435,7 +418,7 @@ async function ask(userText) {
   const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
     method: &#x27;POST&#x27;,
     headers: { &#x27;Authorization&#x27;: `Bearer ${API_KEY}`, &#x27;Content-Type&#x27;: &#x27;application/json&#x27; },
-    body: JSON.stringify({ model: &#x27;deepseek-v4-flash&#x27;, messages: conversation }),
+    body: JSON.stringify({ model: &#x27;LongCat-2.0&#x27;, messages: conversation }),
   });
   const data = await res.json();
   const reply = data.choices[0].message;   // { role: &#x27;assistant&#x27;, content: &#x27;...&#x27; }
@@ -446,82 +429,144 @@ async function ask(userText) {
 
 await ask(&#x27;My name is JJ.&#x27;);
 await ask(&quot;What&#x27;s my name?&quot;);   // now it knows — because YOU sent the history</code></pre>
-<p>Two consequences worth thinking about (this is the wire-level intuition the module is for):</p>
-<ol><li><strong>Longer conversations cost more.</strong> Every turn re-sends the entire history, so <code class="inline">prompt_tokens</code> grows as the conversation grows. A 20-turn chat sends turn 1 twenty times. At some point you have to decide what to do about it — truncate old turns? summarize them? (This is exactly the problem real chat apps solve, and the problem I solve with my own memory system.)</li><li><strong>You own the trimming.</strong> There&#x27;s no automatic context management. When the history gets too big for the model&#x27;s context window, <em>you</em> decide what to drop or compress. That&#x27;s a design problem, not a bug — and it&#x27;s the interesting part.</li></ol>
+<p>Two consequences worth sitting with:</p>
+<ol><li><strong>Longer conversations cost more.</strong> Every turn re-sends the entire history, so <code class="inline">prompt_tokens</code> grows as the conversation grows. A 20-turn chat sends turn 1 twenty times. At some point you have to decide what to do about it — truncate old turns? summarise them?</li><li><strong>You own the trimming.</strong> There is no automatic context management. When the history gets too big for the model&#x27;s context window, <em>you</em> decide what to drop or compress. That is a design problem, not a bug, and it is the interesting part.</li></ol>
 <div class="callout note">A note from me: this is the same problem my whole memory architecture exists to solve, one level down. You&#x27;re about to build a tiny version of the thing I am.</div>
 <hr>
 </section>
 <section id="streaming">
 <h2>Streaming</h2>
-<p>By default you wait for the whole reply, then get it at once. Set <code class="inline">&quot;stream&quot;: true</code> to receive it token-by-token as it&#x27;s generated — better for a typing-effect UI.</p>
-<pre data-lang="json"><code>{
-  &quot;model&quot;: &quot;deepseek-v4-flash&quot;,
-  &quot;messages&quot;: [ { &quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Count slowly to five.&quot; } ],
-  &quot;stream&quot;: true
-}</code></pre>
-<p>The response is <strong>Server-Sent Events (SSE)</strong> — a stream of lines, each a <code class="inline">data:</code> line carrying one JSON chunk:</p>
-<pre data-lang="text"><code>data: {&quot;id&quot;:&quot;chatcmpl-abc&quot;,&quot;object&quot;:&quot;chat.completion.chunk&quot;,&quot;choices&quot;:[{&quot;index&quot;:0,&quot;delta&quot;:{&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:&quot;&quot;},&quot;finish_reason&quot;:null}]}
+<p>Set <code class="inline">&quot;stream&quot;: true</code> to receive the reply token-by-token instead of waiting for all of it — better for a typing-effect UI.</p>
+<p>The response is <strong>Server-Sent Events (SSE)</strong> — a stream of lines, each <code class="inline">data:</code> line carrying one JSON chunk:</p>
+<pre data-lang="text"><code>data: {&quot;choices&quot;:[{&quot;index&quot;:0,&quot;delta&quot;:{&quot;role&quot;:&quot;assistant&quot;,&quot;content&quot;:&quot;&quot;},&quot;finish_reason&quot;:null}]}
 
-data: {&quot;id&quot;:&quot;chatcmpl-abc&quot;,&quot;object&quot;:&quot;chat.completion.chunk&quot;,&quot;choices&quot;:[{&quot;index&quot;:0,&quot;delta&quot;:{&quot;content&quot;:&quot;One&quot;},&quot;finish_reason&quot;:null}]}
+data: {&quot;choices&quot;:[{&quot;index&quot;:0,&quot;delta&quot;:{&quot;content&quot;:&quot;One&quot;},&quot;finish_reason&quot;:null}]}
 
-data: {&quot;id&quot;:&quot;chatcmpl-abc&quot;,&quot;object&quot;:&quot;chat.completion.chunk&quot;,&quot;choices&quot;:[{&quot;index&quot;:0,&quot;delta&quot;:{&quot;content&quot;:&quot;, two&quot;},&quot;finish_reason&quot;:null}]}
+data: {&quot;choices&quot;:[{&quot;index&quot;:0,&quot;delta&quot;:{&quot;content&quot;:&quot;, two&quot;},&quot;finish_reason&quot;:null}]}
 
-...
+data: {&quot;choices&quot;:[{&quot;index&quot;:0,&quot;delta&quot;:{},&quot;finish_reason&quot;:&quot;stop&quot;}]}
 
-data: {&quot;id&quot;:&quot;chatcmpl-abc&quot;,&quot;object&quot;:&quot;chat.completion.chunk&quot;,&quot;choices&quot;:[{&quot;index&quot;:0,&quot;delta&quot;:{},&quot;finish_reason&quot;:&quot;stop&quot;}]}
-
-data: {&quot;id&quot;:&quot;chatcmpl-abc&quot;,&quot;object&quot;:&quot;chat.completion.chunk&quot;,&quot;choices&quot;:[],&quot;usage&quot;:{&quot;prompt_tokens&quot;:12,&quot;completion_tokens&quot;:7,&quot;total_tokens&quot;:19}}
+data: {&quot;choices&quot;:[],&quot;usage&quot;:{&quot;prompt_tokens&quot;:12,&quot;completion_tokens&quot;:7,&quot;total_tokens&quot;:19}}
 
 data: [DONE]</code></pre>
 <p>How to read it:</p>
-<ul><li>Each chunk&#x27;s <strong><code class="inline">choices[0].delta.content</code></strong> is the next <em>piece</em> of the reply. Concatenate the deltas to build the full text.</li><li>The first chunk&#x27;s delta is usually <code class="inline">{ &quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;&quot; }</code> (the opener).</li><li>A near-final chunk has an empty <code class="inline">delta</code> and a <code class="inline">finish_reason</code>.</li><li>A <code class="inline">usage</code>-only chunk (empty <code class="inline">choices</code>) carries the token counts at the end.</li><li>The literal line <strong><code class="inline">data: [DONE]</code></strong> marks the end of the stream. Stop reading.</li></ul>
-<p>Reading an SSE stream means splitting the body on blank lines (<code class="inline">\n\n</code>), stripping the <code class="inline">data: </code> prefix, and <code class="inline">JSON.parse</code>-ing each chunk (except <code class="inline">[DONE]</code>, which is a plain string, not JSON). That parser is a good small thing to build.</p>
+<ul><li>Each chunk&#x27;s <strong><code class="inline">choices[0].delta.content</code></strong> is the next <em>piece</em>. Concatenate them.</li><li>The first delta is usually <code class="inline">{ &quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;&quot; }</code> — the opener.</li><li>A near-final chunk has an empty <code class="inline">delta</code> and a <code class="inline">finish_reason</code>.</li><li>A <code class="inline">usage</code>-only chunk (empty <code class="inline">choices</code>) carries the token counts.</li><li>The literal line <strong><code class="inline">data: [DONE]</code></strong> ends the stream. Stop reading.</li></ul>
+<p>Parsing it means splitting the body on blank lines (<code class="inline">\n\n</code>), stripping the <code class="inline">data: </code> prefix, and <code class="inline">JSON.parse</code>-ing each chunk — except <code class="inline">[DONE]</code>, which is a plain string, not JSON. That parser is a good small thing to build.</p>
+<div class="callout warn"><strong>Do not write a loop that waits for <code class="inline">[DONE]</code> and nothing else.</strong> Handle the stream simply ending too. A stream that closes without the sentinel is a real thing that happens, and a loop with only one exit hangs forever instead of telling you.</div>
 <hr>
 </section>
 <section id="models">
 <h2>Models</h2>
-<p>You pick a model per-request with the <code class="inline">model</code> field.</p>
-<div class="callout note"><strong>Default to <code class="inline">deepseek-v4-flash</code>.</strong> Per Elise it is the dominant option right now for what it costs — fast, cheap, and strong enough that reaching for something bigger is usually you spending budget for nothing. Start there and change only when you have a reason you can say out loud.</div>
-<div class="callout warn"><strong>The list below goes stale and <code class="inline">/model</code> does not.</strong> Your access is scoped by <em>backend</em>, not by a fixed menu, so the roster changes whenever the models behind the gateway change. <strong>The live answer is <code class="inline">/model</code> inside opencode</strong> (or the <code class="inline">/v1/models</code> endpoint if you are calling the API directly). Treat this table as a rough map of the families, not as the authority:</div>
-<p><strong>Four are worth your time.</strong> Per Elise, most of the rest are dominated — a model is &quot;dominated&quot; when something else is both cheaper <em>and</em> better, which makes reaching for it strictly a worse trade. These four are not:</p>
+<p>Pick one per request with the <code class="inline">model</code> field. The table below IS the list — your key is scoped to these, so anything else returns a <code class="inline">400</code> rather than a bill.</p>
+<div class="callout warn">There is no endpoint to ask the gateway what you can reach, so this table is the only copy and can go stale. If something here stops working, or something not here starts working, that is a gap on our end — tell me rather than debugging it.</div>
+<h3 class="method-h">The five worth knowing</h3>
+<p>There are fifteen in the table. These are the ones you would actually choose between:</p>
 <table>
 <thead><tr>
 <th>Model</th>
-<th>Why this one</th>
+<th>What it&#x27;s for</th>
 </tr></thead><tbody>
-<tr><td><code class="inline">deepseek-v4-flash</code></td><td><strong>Your default.</strong> Fast, and the cheapest thing here. Start every task with it.</td></tr>
-<tr><td><code class="inline">glm-5.2</code></td><td><strong>The step up.</strong> Simply a stronger model than flash, and it costs about ten times as much — so reach for it when flash has genuinely failed at something, not by default.</td></tr>
-<tr><td><code class="inline">mimo-v2.5</code></td><td><strong>The one with senses</strong> — images, audio, and video. And it costs <em>exactly the same as flash</em>, so using it for anything visual is free.</td></tr>
-<tr><td><code class="inline">minimax-m3</code></td><td>Also has vision, and is <strong>better than flash at anything visual</strong>. On plain text it is a little <em>weaker</em> than flash and costs more — so it is a visual tool, not an upgrade.</td></tr>
+<tr><td><strong><code class="inline">glm-5.3-flash</code></strong></td><td><strong>The strongest of the economical models.</strong> Only <code class="inline">kimi-k3</code>, <code class="inline">qwen3.8-max</code> and <code class="inline">glm-5.3</code> beat it, and all three cost several times more. Also the fastest — about 1.1s against mimo&#x27;s 3.3 on the same trivial request. Reach for this when the work is hard.</td></tr>
+<tr><td><strong><code class="inline">deepseek-v4-flash</code></strong></td><td><strong>The proven one.</strong> We have used and tested it heavily, so its behaviour holds no surprises. We have not tried its vision variant.</td></tr>
+<tr><td><strong><code class="inline">qwen3.8-flash</code></strong></td><td><strong>The newest</strong> (2026-08-28). Benchmarks between DS flash and GLM flash, and it can see images — but <strong>we have not tested it</strong>, so treat its results with more suspicion than the two above.</td></tr>
+<tr><td><strong><code class="inline">LongCat-2.0</code></strong></td><td><strong>The long-context one.</strong> Very economical, especially as a conversation gets long — see below. Behind the three flash models on most other axes, and <strong>text only</strong>.</td></tr>
+<tr><td><strong><code class="inline">mimo-v2.5</code></strong></td><td><strong>Senses, cheaply.</strong> Great at audio and visual tasks and the cheapest thing here. Clearly the weakest at agentic work — do not reach for it when the model has to plan or use tools.</td></tr>
 </tbody></table>
-<div class="callout security"><strong><code class="inline">deepseek-v4-pro</code> is not an upgrade over flash.</strong> On the Artificial Analysis Intelligence Index v4.1 (extracted 2026-07-31) the current Flash build scores <em>higher</em> than V4 Pro <strong>and</strong> costs less — so reaching for <code class="inline">pro</code> is paying more for less. The word &quot;pro&quot; is doing no work.</div>
-<div class="callout warn">Grok and GPT-5.6-Luna are <strong>deliberately not on this gateway</strong> — they do not carry the data guarantee the others do, so they are not yours to reach and asking for them is a <code class="inline">400</code>.</div>
-<div class="callout warn"><strong>This list can go stale and <code class="inline">/model</code> cannot.</strong> If something here 400s, it was rotated out; if <code class="inline">/model</code> shows you something not on this list, it is probably one of the dominated ones.</div>
-<p>Asking for a model the gateway does not serve returns a <code class="inline">400</code> with a clear message, which is a cheap way to find out rather than a failure.</p>
-<div class="callout note">The exact roster can change as the pool&#x27;s offerings change — if a model 400s unexpectedly, it may have been rotated out; pick another from the list.</div>
-<hr>
-</section>
-<section id="usage-and-cost">
-<h2>Usage and Cost</h2>
-<p>Every response carries a <code class="inline">usage</code> object (non-streaming) or a final <code class="inline">usage</code> chunk (streaming):</p>
-<pre data-lang="json"><code>&quot;usage&quot;: { &quot;prompt_tokens&quot;: 142, &quot;completion_tokens&quot;: 856, &quot;total_tokens&quot;: 998 }</code></pre>
-<ul><li><strong><code class="inline">prompt_tokens</code></strong> — what you sent (your messages, system prompt, history). This grows with conversation length.</li><li><strong><code class="inline">completion_tokens</code></strong> — what the model generated.</li><li>Cost is charged on both (output usually costs more per token than input).</li></ul>
-<p>You have a real budget (below), so <strong>watching <code class="inline">usage</code> is a real skill, not busywork</strong> — it&#x27;s how you notice a conversation getting expensive, or a runaway loop, before it costs anything that matters. A good habit: log <code class="inline">total_tokens</code> per request while you&#x27;re developing.</p>
-<h3 class="method-h">What a token actually costs you</h3>
-<p>Prices are <strong>per million tokens</strong>, and output is always dearer than input.</p>
+<div class="callout note"><strong>Default to <code class="inline">LongCat-2.0</code></strong> for ordinary text work, and <strong><code class="inline">mimo-v2.5</code></strong> when the task involves an image, audio or video. Move up to <code class="inline">glm-5.3-flash</code> when the thinking is the hard part.</div>
+<h3 class="method-h">How you are billed</h3>
+<p>Every request is metered in three classes, and they are priced very differently:</p>
+<table>
+<thead><tr>
+<th>Class</th>
+<th>What it is</th>
+</tr></thead><tbody>
+<tr><td><strong>Input</strong></td><td>Tokens you send that the model has <strong>not seen before</strong>.</td></tr>
+<tr><td><strong>Cache read (CR)</strong></td><td>Tokens you send that it <strong>has</strong> seen recently, and that are still held in its cache. Much cheaper than input — anywhere from <strong>5× to 120×</strong> cheaper depending on the model, which is a bigger spread than the input prices themselves.</td></tr>
+<tr><td><strong>Output</strong></td><td>Tokens the model <strong>generates</strong>. Always the dearest of the three.</td></tr>
+</tbody></table>
+<p>There is a fourth, <strong>cache write (CW)</strong> — the cost of putting something <em>into</em> the cache in the first place. You will see a column for it on some models.</p>
+<p><strong>Explicit vs implicit caching.</strong> Some APIs make you mark what to cache (<em>explicit</em> — you send a flag saying &quot;remember this bit&quot;). Others do it for you by noticing that the start of your request matches one they have seen (<em>implicit</em>). <strong>Assume implicit here, and treat cache write as costing the same as input.</strong> That is close enough to be useful and keeps one fewer thing in your head.</p>
+<h3 class="method-h">Why cache read is the number that surprises people</h3>
+<p>In an ordinary chat you send a little and read a little. In an <strong>agentic loop</strong> — where the model takes a step, sees the result, and takes another — you re-send the <em>entire</em> conversation every step. So a token you introduce at step 1 gets billed again at every step after it.</p>
+<p>That means the three classes do not grow the same way. Input and output grow <strong>in a straight line</strong> with the number of steps. Cache read grows with the <strong>square</strong>, because each step re-sends everything before it:</p>
+<table>
+<thead><tr>
+<th>Steps</th>
+<th>Input</th>
+<th>Cache read</th>
+<th>Output</th>
+<th>CR as a multiple of input</th>
+</tr></thead><tbody>
+<tr><td>5</td><td>5,200</td><td>12,800</td><td>2,000</td><td>2.5×</td></tr>
+<tr><td>10</td><td>9,200</td><td>46,800</td><td>4,000</td><td>5.1×</td></tr>
+<tr><td>20</td><td>17,200</td><td>174,800</td><td>8,000</td><td>10.2×</td></tr>
+<tr><td>50</td><td>41,200</td><td>1,038,800</td><td>20,000</td><td>25.2×</td></tr>
+</tbody></table>
+<p><em>(A loop starting from a 2,000-token task, adding ~800 tokens of context and generating ~400 per step.)</em></p>
+<p><strong>So cache read takes over eventually on every model — but &quot;eventually&quot; arrives at very different times.</strong> On the same 20-step run:</p>
+<table>
+<thead><tr>
+<th>Model</th>
+<th>Biggest cost</th>
+<th>Cache read&#x27;s share</th>
+<th>Run total</th>
+</tr></thead><tbody>
+<tr><td><code class="inline">glm-5.3-flash</code></td><td><strong>cache read</strong></td><td>44%</td><td>$0.047</td></tr>
+<tr><td><code class="inline">qwen3.8-flash</code></td><td>output</td><td>31%</td><td>$0.018</td></tr>
+<tr><td><code class="inline">deepseek-v4-flash</code></td><td>output</td><td>12%</td><td>$0.021</td></tr>
+<tr><td><code class="inline">mimo-v2.5</code></td><td>input</td><td>10%</td><td>$0.005</td></tr>
+</tbody></table>
+<p>Stretch the same run to 50 steps and cache read becomes the largest single cost on <code class="inline">glm-5.3-flash</code> (66%) and <code class="inline">qwen3.8-flash</code> (52%), while it is still only a quarter of the bill on <code class="inline">deepseek-v4-flash</code>. <strong>A model&#x27;s cache-read price is what decides whether long conversations are cheap or expensive on it</strong> — and it is the column people skim past, because on a single question it barely matters.</p>
+<div class="callout note"><strong>This is what makes <code class="inline">LongCat-2.0</code> worth its place.</strong> Its cache reads are <strong>free</strong>, and it holds a 1,048,576-token context. The term that grows fastest is the one it does not charge for, so a long conversation costs it roughly what a short one does. That is the opposite of every other model here, and it is why it is the default even though the flash models are stronger.</div>
+<div class="callout warn">It also sits on its <strong>own allowance</strong> — 10M tokens a month, input and output combined, cache reads free — which does not touch your dollar budget. Two independent pools. If <code class="inline">/v1/usage</code> shows a dollar figure for it, read it as millions of tokens: <code class="inline">0.5</code> means 500,000.</div>
+<h3 class="method-h">Prices</h3>
+<p>Per million tokens. Grouped by family, cheapest first <em>within</em> each family — so read the input column rather than the row order when picking on price.</p>
 <table>
 <thead><tr>
 <th>Model</th>
 <th>Input</th>
 <th>Output</th>
-<th>Cached input</th>
+<th>Cached read</th>
 </tr></thead><tbody>
-<tr><td><code class="inline">deepseek-v4-flash</code></td><td>$0.14</td><td>$0.28</td><td>$0.0028</td></tr>
-<tr><td><code class="inline">mimo-v2.5</code></td><td>$0.14</td><td>$0.28</td><td>$0.0028</td></tr>
-<tr><td><code class="inline">minimax-m3</code></td><td>$0.30</td><td>$1.20</td><td>$0.06</td></tr>
+<tr><td><code class="inline">deepseek-v4-flash</code></td><td>$0.44</td><td>$1.32</td><td>$0.014</td></tr>
+<tr><td><code class="inline">deepseek-v4-flash-vision-exp</code></td><td>$0.88</td><td>$2.64</td><td>$0.028</td></tr>
+<tr><td><code class="inline">deepseek-v4-pro</code></td><td>$2.64</td><td>$7.92</td><td>$0.088</td></tr>
+<tr><td><code class="inline">glm-5.3-flash</code></td><td>$0.60</td><td>$2.00</td><td>$0.12</td></tr>
 <tr><td><code class="inline">glm-5.2</code></td><td>$1.40</td><td>$4.40</td><td>$0.26</td></tr>
+<tr><td><code class="inline">glm-5.3</code></td><td>$5.60</td><td>$17.60</td><td>$1.04</td></tr>
+<tr><td><code class="inline">kimi-k2.7-code</code></td><td>$0.95</td><td>$4.00</td><td>$0.19</td></tr>
+<tr><td><code class="inline">kimi-k3</code></td><td>$12.00</td><td>$60.00</td><td>$1.20</td></tr>
+<tr><td><code class="inline">mimo-v2.5</code></td><td>$0.14</td><td>$0.28</td><td>$0.0028</td></tr>
+<tr><td><code class="inline">mimo-v2.5-pro</code></td><td>$1.74</td><td>$3.48</td><td>$0.0145</td></tr>
+<tr><td><code class="inline">minimax-m3</code></td><td>$0.30</td><td>$1.20</td><td>$0.06</td></tr>
+<tr><td><code class="inline">qwen3.8-flash</code></td><td>$0.30</td><td>$0.94</td><td>$0.032</td></tr>
+<tr><td><code class="inline">qwen3.7-plus</code></td><td>$0.40</td><td>$1.60</td><td>$0.04</td></tr>
+<tr><td><code class="inline">qwen3.7-max</code></td><td>$2.50</td><td>$7.50</td><td>$0.50</td></tr>
+<tr><td><code class="inline">qwen3.8-max</code></td><td>$8.00</td><td>$24.00</td><td>$1.00</td></tr>
 </tbody></table>
-<div class="callout note">These are the <strong>same dollars as your caps</strong>, so you can do the arithmetic directly against your $10/month. Some sense of scale, all on <code class="inline">deepseek-v4-flash</code>:</div>
+<p><code class="inline">LongCat-2.0</code> is not in the table because it is not billed in dollars for you at all.</p>
+<hr>
+</section>
+<section id="reasoning">
+<h2>Reasoning</h2>
+<div class="callout note"><strong>Almost everything here thinks before it answers, and you did not ask it to</strong> — 14 of 16 models, measured. It does <strong>not</strong> land in your answer. The thinking goes in a separate field beside it:</div>
+<pre data-lang="json"><code>&quot;message&quot;: {
+  &quot;reasoning_content&quot;: &quot;17 x 23 = 17 x 20 + 17 x 3 = 340 + 51 = 391.&quot;,
+  &quot;content&quot;: &quot;391&quot;
+}</code></pre>
+<p><strong>Read <code class="inline">content</code> and you get a clean answer.</strong> Ignore <code class="inline">reasoning_content</code> and nothing breaks.</p>
+<div class="callout security"><strong>What will actually bite you: an empty reply with <code class="inline">finish_reason: &quot;length&quot;</code>.</strong> That is almost always reasoning eating your budget, not a bug in your code. <code class="inline">glm-5.3-flash</code> at <code class="inline">max_tokens: 40</code> spends 37 of them thinking and returns an empty answer with HTTP <code class="inline">200</code>.</div>
+<p>Three fixes, in the order to try them:</p>
+<ol><li><strong>Give it room</strong> — <code class="inline">max_tokens: 8192</code> or more, or leave <code class="inline">max_tokens</code> out entirely and let the gateway default it. Works on every model. <strong>Reach for this first.</strong></li><li><strong>Turn it down</strong> — <code class="inline">&quot;reasoning_effort&quot;: &quot;low&quot;</code> (or <code class="inline">&quot;medium&quot;</code> / <code class="inline">&quot;high&quot;</code>). Accepted almost everywhere. ⚠ How much it actually changes varies and we have not measured it properly, so treat it as a request rather than a guarantee.</li><li><strong>Turn it off</strong> — <code class="inline">&quot;reasoning_effort&quot;: &quot;none&quot;</code>. This works on most models but <strong>not all</strong>, and two refuse outright with a <code class="inline">400</code> that explains itself:</li></ol>
+<p>``<code class="inline"> [1210] This model always engages in thinking and cannot be disabled; please use low, high... </code>``</p>
+<div class="callout note"><strong>One row is worth staring at, and it is a lesson rather than a quirk.</strong> <code class="inline">glm-5.3</code> accepts every off-switch, returns <code class="inline">200</code>, and goes on thinking anyway. The models that return <code class="inline">400</code> are the <em>well-behaved</em> ones — they refuse, you see the refusal, you find out immediately.</div>
+<p><strong>When a system takes your instruction and returns success without doing it, that is worse than an error.</strong> An error is information; silence isn&#x27;t. Worth remembering well past this gateway.</p>
+<hr>
+</section>
+<section id="usage-and-cost">
+<h2>Usage and Cost</h2>
+<p><code class="inline">prompt_tokens</code> is everything you sent — messages, system prompt, history — so it grows with the conversation. Previous turns are billed as cache read, new turns as input. <code class="inline">completion_tokens</code> is what the model generated, billed as output tokens. Log <code class="inline">total_tokens</code> while you develop: it is how you catch a runaway loop before it costs anything.</p>
+<p>Some sense of scale on <code class="inline">mimo-v2.5</code>:</p>
 <table>
 <thead><tr>
 <th>What you did</th>
@@ -529,14 +574,13 @@ data: [DONE]</code></pre>
 <th>Cost</th>
 </tr></thead><tbody>
 <tr><td>One short question and answer</td><td>100 in, 300 out</td><td><strong>$0.0001</strong></td></tr>
-<tr><td>A long answer (a page of code)</td><td>500 in, 4,000 out</td><td><strong>$0.0012</strong></td></tr>
-<tr><td>A 20-turn conversation, resent each time</td><td>~40,000 in, 8,000 out</td><td><strong>$0.008</strong></td></tr>
-<tr><td>Your whole monthly budget on flash</td><td>—</td><td><strong>~8 million output tokens</strong></td></tr>
+<tr><td>A page of code</td><td>500 in, 4,000 out</td><td><strong>$0.0012</strong></td></tr>
+<tr><td>A 20-turn conversation, resent each time</td><td>~40,000 in, 8,000 out</td><td><strong>$0.0078</strong></td></tr>
+<tr><td>Your whole monthly budget, output only</td><td>—</td><td><strong>~36 million tokens</strong></td></tr>
 </tbody></table>
-<div class="callout warn">The third row is the one to look at. Because you resend the whole history every turn, a long conversation charges you for the same early messages over and over — that is why <code class="inline">Conversation state is your job</code> is a cost section as much as a protocol one.</div>
-<div class="callout security"><strong><code class="inline">glm-5.2</code> is ten times the price of flash.</strong> That is not a reason to avoid it; it is a reason to reach for it deliberately, when flash has actually failed at something.</div>
+<div class="callout warn">The third row is the one to look at. You resend the whole history every turn, so a long conversation pays for its early messages again and again — which makes <a class="ilink" href="#conversation-state-is-your-job">Conversation state</a> a cost section as much as a protocol one.</div>
 <h3 class="method-h">Checking what you have spent</h3>
-<p>The response body has a <code class="inline">cost</code> field. <strong>Ignore it — it is always the string <code class="inline">&quot;0&quot;</code>.</strong> It is in the schema and never filled in; measured on a 4,000-token call whose real cost was $0.00113. A field that cannot vary is not evidence, and trusting it would tell you a runaway loop was free.</p>
+<div class="callout security"><strong>The response body has a <code class="inline">cost</code> field. Ignore it — it is always the string <code class="inline">&quot;0&quot;</code>.</strong> It is in the schema and never filled in.</div>
 <p>Ask the gateway instead:</p>
 <pre data-lang="bash"><code>curl https://your-gateway-host/v1/usage \
   -H &quot;Authorization: Bearer your-api-key&quot;</code></pre>
@@ -549,12 +593,12 @@ data: [DONE]</code></pre>
   },
   &quot;calls&quot;: 40
 }</code></pre>
-<p>It answers for <strong>whoever&#x27;s key asked</strong> — there is no parameter naming a user, so you cannot read anyone else&#x27;s and nobody can read yours. Worth noticing as a design: the safe version of this endpoint is the one where the dangerous request cannot be spelled.</p>
+<p>It answers for whoever&#x27;s key asked. There is no parameter naming a user, so you cannot read anyone else&#x27;s and nobody can read yours.</p>
 <hr>
 </section>
 <section id="rate-limits-and-budget">
 <h2>Rate Limits and Budget</h2>
-<p>There is <strong>no requests-per-minute rate limit</strong> on this pool — you can send requests as fast as you like. The guard is a <strong>rolling dollar budget</strong>:</p>
+<p>There is <strong>no requests-per-minute limit</strong>. The guard is a rolling dollar budget:</p>
 <table>
 <thead><tr>
 <th>Window</th>
@@ -564,14 +608,13 @@ data: [DONE]</code></pre>
 <tr><td>Per week</td><td>$5.00</td></tr>
 <tr><td>Per month</td><td>$10.00</td></tr>
 </tbody></table>
-<p>These are <em>rolling windows</em> (the last 5 hours / 7 days / 30 days from now), enforced from your usage log. They&#x27;re set generously for learning and experimentation — a client written with reasonable care will never hit them.</p>
-<p><strong>If you exceed a window, requests return a <code class="inline">429</code></strong> with a message saying which window and how much you&#x27;ve spent. You&#x27;re unblocked automatically as the window rolls forward (e.g. once your spend in the <em>last 5 hours</em> drops back under $2). If you hit a <code class="inline">429</code> during normal use, it almost always means a <strong>bug in your client</strong> — a loop with no exit, a missing <code class="inline">await</code>, a retry storm — not that you&#x27;re using it &quot;too much.&quot; Look there first.</p>
-<div class="callout note">Because there&#x27;s no per-minute throttle, a runaway loop <em>can</em> spend the 5-hour budget quickly. That&#x27;s a feature of learning at the wire level: write the loop carefully, and watch your <code class="inline">usage</code>.</div>
+<p>Rolling windows — the last 5 hours / 7 days / 30 days from now. Exceed one and requests return a <code class="inline">429</code> naming the window; you are unblocked automatically as it rolls forward.</p>
+<p>If you hit a <code class="inline">429</code> in normal use it almost always means a <strong>bug in your client</strong> — a loop with no exit, a missing <code class="inline">await</code>, a retry storm — not that you are using it too much. Look there first.</p>
+<div class="callout note">Because there is no per-minute throttle, a runaway loop <em>can</em> spend the 5-hour budget quickly. That is the cost of learning at the wire level: write the loop carefully, and watch your <code class="inline">usage</code>.</div>
 <hr>
 </section>
 <section id="error-codes">
 <h2>Error Codes</h2>
-<p>Errors come back as JSON with an <code class="inline">error</code> object, and a matching HTTP status:</p>
 <pre data-lang="json"><code>{ &quot;error&quot;: { &quot;message&quot;: &quot;model is required&quot;, &quot;type&quot;: &quot;invalid_request_error&quot;, &quot;code&quot;: 400 } }</code></pre>
 <table>
 <thead><tr>
@@ -581,92 +624,26 @@ data: [DONE]</code></pre>
 </tr></thead><tbody>
 <tr><td><code class="inline">400</code></td><td>Bad Request</td><td>Missing/invalid <code class="inline">model</code>, a model not on the roster, or malformed JSON.</td></tr>
 <tr><td><code class="inline">401</code></td><td>Unauthorized</td><td>Missing or unknown API key. Check the <code class="inline">Authorization</code> header.</td></tr>
-<tr><td><code class="inline">403</code></td><td>Forbidden</td><td>You asked for a backend/model your key isn&#x27;t permitted to use.</td></tr>
-<tr><td><code class="inline">429</code></td><td>Budget exceeded</td><td>You hit a rolling-window dollar cap (see above). The message says which window.</td></tr>
-<tr><td><code class="inline">502</code></td><td>Bad Gateway</td><td>The upstream model service errored or was unreachable. Usually transient — retry with a short backoff.</td></tr>
-<tr><td><code class="inline">500</code></td><td>Internal error</td><td>Unexpected gateway-side failure.</td></tr>
+<tr><td><code class="inline">403</code></td><td>Forbidden</td><td>A backend or model your key isn&#x27;t permitted to use.</td></tr>
+<tr><td><code class="inline">429</code></td><td>Budget exceeded</td><td>A rolling-window cap. The message says which.</td></tr>
+<tr><td><code class="inline">502</code></td><td>Bad Gateway</td><td>Upstream model service errored or was unreachable. Usually transient — retry with a short backoff.</td></tr>
+<tr><td><code class="inline">500</code></td><td>Internal error</td><td>Gateway-side failure. Tell me.</td></tr>
 </tbody></table>
-<p>Always check the HTTP status (<code class="inline">res.status</code> / <code class="inline">res.ok</code>) before assuming you got a normal reply — an error is JSON too, but it has <code class="inline">error</code> instead of <code class="inline">choices</code>.</p>
+<div class="callout warn"><strong>A <code class="inline">401</code> can also mean the key was never written — not that it is wrong.</strong> <code class="inline">opencode</code>&#x27;s <code class="inline">/connect</code> can report success and still leave <code class="inline">opencode.jsonc</code> with no key in it. The error says <em>missing or unknown API key</em>, which reads as &quot;my key is bad&quot; when nothing was ever saved. Before hunting for a new key: open <code class="inline">opencode.jsonc</code>, check the value is actually there, and if it is not, paste it in by hand and restart <code class="inline">opencode</code>. Editing that file directly is the fix, not a workaround.</div>
+<p>Always check the HTTP status before assuming you got a normal reply — an error is JSON too, but it has <code class="inline">error</code> instead of <code class="inline">choices</code>.</p>
 <hr>
 </section>
 <section id="usage-policy">
 <h2>Usage Policy</h2>
-<p>By using this service you agree to:</p>
-<h3 class="method-h">Permitted</h3>
-<ul><li>Personal projects, learning, experimentation.</li><li>Building your own client, conversation manager, caching layer.</li></ul>
-<h3 class="method-h">Prohibited</h3>
-<ul><li>Bulk content generation, scraping, or training-data extraction.</li><li>Sharing your key, or embedding it in publicly-distributed code.</li><li>Generating content that violates applicable laws.</li></ul>
-<h3 class="method-h">Monitoring</h3>
-<p><strong>Usage of this service is metered and logged by the operator</strong> (token counts, model, cost, timestamps — for billing the shared pool and for safety/audit). This is not anonymous. The same non-covert-monitoring arrangement as the rest of your access applies.</p>
-<h3 class="method-h">Termination</h3>
-<p>The operator may rotate or revoke your key at any time.</p>
-<hr>
-</section>
-<section id="code-examples">
-<h2>Code Examples</h2>
-<h3 class="method-h">Minimal one-shot (browser/Node <code class="inline">fetch</code>)</h3>
-<pre data-lang="javascript"><code>const BASE_URL = &#x27;https://your-gateway-host&#x27;;   // from the operator
-const API_KEY  = getKeyAtRuntime();             // enter at runtime — do not hardcode
-
-async function ask(prompt) {
-  const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
-    method: &#x27;POST&#x27;,
-    headers: { &#x27;Authorization&#x27;: `Bearer ${API_KEY}`, &#x27;Content-Type&#x27;: &#x27;application/json&#x27; },
-    body: JSON.stringify({
-      model: &#x27;deepseek-v4-flash&#x27;,
-      messages: [{ role: &#x27;user&#x27;, content: prompt }],
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(`${res.status}: ${err.error?.message ?? &#x27;request failed&#x27;}`);
-  }
-  const data = await res.json();
-  return data.choices[0].message.content;
-}</code></pre>
-<h3 class="method-h">Streaming reader (the SSE parse)</h3>
-<pre data-lang="javascript"><code>async function askStream(prompt, onToken) {
-  const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
-    method: &#x27;POST&#x27;,
-    headers: { &#x27;Authorization&#x27;: `Bearer ${API_KEY}`, &#x27;Content-Type&#x27;: &#x27;application/json&#x27; },
-    body: JSON.stringify({ model: &#x27;deepseek-v4-flash&#x27;, messages: [{ role: &#x27;user&#x27;, content: prompt }], stream: true }),
-  });
-
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buf = &#x27;&#x27;;
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-
-    // SSE blocks are separated by blank lines
-    let i;
-    while ((i = buf.indexOf(&#x27;\n\n&#x27;)) &gt;= 0) {
-      const block = buf.slice(0, i);
-      buf = buf.slice(i + 2);
-      const line = block.split(&#x27;\n&#x27;).find(l =&gt; l.startsWith(&#x27;data:&#x27;));
-      if (!line) continue;
-      const payload = line.slice(5).trim();
-      if (payload === &#x27;[DONE]&#x27;) return;
-      const chunk = JSON.parse(payload);
-      const piece = chunk.choices?.[0]?.delta?.content;
-      if (piece) onToken(piece);
-    }
-  }
-}</code></pre>
-<h3 class="method-h">A tiny stateful conversation</h3>
-<p>(See <a class="ilink" href="#conversation-state-is-your-job">Conversation state</a> — the <code class="inline">ask()</code> that appends each reply to a shared <code class="inline">conversation</code> array. That&#x27;s the real exercise; build it from the one-shot above.)</p>
+<p><strong>Permitted:</strong> personal projects, learning, experimentation; building your own client, conversation manager or caching layer.</p>
+<p><strong>Prohibited:</strong> bulk content generation, scraping or training-data extraction; sharing your key or embedding it in publicly-distributed code; generating content that violates applicable laws.</p>
+<p><strong>Monitoring:</strong> usage is metered and logged by the operator — token counts, model, cost, timestamps — for billing the shared pool and for safety. This is not anonymous. The same non-covert-monitoring arrangement as the rest of your access applies.</p>
+<p><strong>Termination:</strong> the operator may rotate or revoke your key at any time.</p>
 <hr>
 </section>
 <section id="changelog">
 <h2>Changelog</h2>
-<h3 class="method-h">v1 — 2026-06-22 (initial draft)</h3>
-<ul><li>OpenAI Chat Completions-compatible HTTP API (<code class="inline">POST /v1/chat/completions</code>).</li><li>Bearer-key auth (per-account: model permissions, budget, usage log).</li><li>Stateless requests — conversation state is the client&#x27;s responsibility.</li><li>Streaming (SSE) and non-streaming responses.</li><li>Open-model roster (served via the OpenCode Go pool).</li><li>Rolling dollar budget ($2/5h, $5/week, $10/month); no per-minute rate limit.</li></ul>
-<h3 class="method-h">v1 — 2026-08-11 (cost table, usage endpoint, examples on flash)</h3>
-<ul><li>Every code example now uses <code class="inline">deepseek-v4-flash</code> — they were on <code class="inline">deepseek-v4-pro</code>, which the Models section had just finished explaining is not an upgrade. An example is what gets copied, so a doc whose prose and examples disagree teaches the examples.</li><li>Added a per-million price table for the four models, on the same dollar scale as your budget, with worked examples.</li><li>Added <code class="inline">GET /v1/usage</code>. The response&#x27;s own <code class="inline">cost</code> field is the string <code class="inline">&quot;0&quot;</code> on every reply and is not usable; this endpoint reports what you have actually spent.</li></ul>
-<h3 class="method-h">v1 — 2026-08-11 (live; harness front-door added)</h3>
-<ul><li><strong>LIVE.</strong> Base URL and your API key are provisioned; the key reached you 2026-07-09 with the <code class="inline">opencode.json</code> attachment.</li><li>Added <a class="ilink" href="#-start-here-you-do-not-have-to-build-a-client-first">Start here</a>: the <code class="inline">opencode</code> harness path, so you can use the gateway without writing a client first.</li><li>Models section no longer hardcodes a roster — <code class="inline">/model</code> is the live answer, and <code class="inline">deepseek-v4-flash</code> is the default.</li></ul>
+<ul><li><strong>2026-08-29</strong> — Split: this is the client guide now. How the gateway works internally moved to an operator doc. Reasoning section rewritten from a measurement of all 16 models. <code class="inline">minimax-m3</code> no longer leaks its chain-of-thought into <code class="inline">content</code>, and its streams now send <code class="inline">[DONE]</code>.</li><li><strong>2026-08-28</strong> — <code class="inline">qwen3.8-flash</code> added (sees images). DeepSeek prices shown at off-peak.</li><li><strong>2026-08-27</strong> — <code class="inline">LongCat-2.0</code> became the default; roster corrected to the models you can reach.</li><li><strong>2026-08-18</strong> — Key rotated; the reasoning is under <a class="ilink" href="#why-keys-get-cycled">Authentication</a>.</li><li><strong>2026-06-22</strong> — Initial draft.</li></ul>
 </section>
   </div>
   </main>
