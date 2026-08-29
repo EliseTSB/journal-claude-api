@@ -458,7 +458,10 @@ data: [DONE]</code></pre>
 <section id="models">
 <h2>Models</h2>
 <p>Pick one per request with the <code class="inline">model</code> field. The table below IS the list — your key is scoped to these, so anything else returns a <code class="inline">400</code> rather than a bill.</p>
-<div class="callout warn">There is no endpoint to ask the gateway what you can reach, so this table is the only copy and can go stale. If something here stops working, or something not here starts working, that is a gap on our end — tell me rather than debugging it.</div>
+<div class="callout note"><strong>You do not have to trust this table.</strong> <code class="inline">GET /v1/models</code> answers for your key specifically, so it is always current even when the table below is not:</div>
+<pre data-lang="bash"><code>curl -s https://gateway.plaintextpress.com/v1/models \
+  -H &quot;Authorization: Bearer $KEY&quot; | jq -r &#x27;.data[].id&#x27;</code></pre>
+<p>If the endpoint and the table disagree, <strong>the endpoint is right</strong> — tell me and I will fix the table.</p>
 <h3 class="method-h">The five worth knowing</h3>
 <p>There are fifteen in the table. These are the ones you would actually choose between:</p>
 <table>
@@ -546,6 +549,17 @@ data: [DONE]</code></pre>
 </tbody></table>
 <p><code class="inline">LongCat-2.0</code> is not in the table because it is not billed in dollars for you at all.</p>
 <hr>
+<h3 class="method-h">Using the gateway from opencode</h3>
+<p>opencode will not discover these models on its own. A custom provider&#x27;s model list is a <strong>hand-written map</strong> in your config, and <code class="inline">opencode models --refresh</code> only refreshes models.dev — which has no entry for a provider that isn&#x27;t public. So the list in your config is a <em>copy</em>, and it goes stale silently every time we add or drop a model.</p>
+<p><code class="inline">GET /v1/opencode-config</code> hands you the whole provider block, built from what your key can actually reach. Put this in your shell profile and your model list is correct at every launch, with your config file untouched:</p>
+<pre data-lang="bash"><code>export JOURNAL_GATEWAY_KEY=&#x27;your-api-key&#x27;
+CFG=$(curl -fsS -H &quot;Authorization: Bearer $JOURNAL_GATEWAY_KEY&quot; \
+  https://gateway.plaintextpress.com/v1/opencode-config)
+# only export it if it actually parsed — see the warning below
+echo &quot;$CFG&quot; | jq -e . &gt;/dev/null 2&gt;&amp;1 &amp;&amp; export OPENCODE_CONFIG_CONTENT=&quot;$CFG&quot;</code></pre>
+<div class="callout security"><strong>The <code class="inline">jq -e</code> check is not optional.</strong> If the fetch returns <em>nothing</em> opencode ignores it and starts normally — that is the safe failure. But if it returns <em>garbage</em> (an HTML error page from a captive portal, say) opencode will not start at all. The check turns the second case into the first.</div>
+<div class="callout warn">The block never contains your key. It emits <code class="inline">{env:JOURNAL_GATEWAY_KEY}</code> instead, which is why the first line above exists — so the config is safe to print, paste or commit.</div>
+<p>Two optional query parameters, if you already have a provider configured and want to replace it in place rather than gain a second one: <code class="inline">?id=my-provider-name</code> and <code class="inline">?keyEnv=MY_VAR_NAME</code>. Both are validated — a name that isn&#x27;t a plain lowercase slug (or, for the env var, plain uppercase) is rejected with a <code class="inline">400</code> rather than quietly changed, because a config file is not a good place for a surprise.</p>
 </section>
 <section id="reasoning">
 <h2>Reasoning</h2>
